@@ -143,7 +143,7 @@ description: "Task list for Library Manager API implementation"
 - [X] T055 [US3] Implement `CreateLoanUseCase` business transaction (reserve idempotency key only — do not complete hash/replay/409; those are T063–T065; validate User, reserve availability, insert Loan with DueAtUtc = BorrowedAtUtc.AddDays(14) in UTC, LoanCreated AuditEvent, BookAvailabilityChanged Outbox, commit) in `src/LibraryManager.Application/Loans/CreateLoan/CreateLoanUseCase.cs`
 - [X] T056 [US3] After commit, `await` Redis invalidation without failing the HTTP result in `src/LibraryManager.Application/Loans/CreateLoan/CreateLoanUseCase.cs`
 - [X] T057 [US3] Implement `LoansController` POST `/loans` with required `Idempotency-Key` in `src/LibraryManager.Api/Controllers/LoansController.cs`
-- [ ] T058 [US3] Implement `GetBookLoanHistoryUseCase` and GET `/books/{id}/loans` with `page` (default 1) and `pageSize` (default 20, maximum 100) in `src/LibraryManager.Application/Loans/GetBookLoanHistory/GetBookLoanHistoryUseCase.cs` and `BooksController`
+- [X] T058 [US3] Implement `GetBookLoanHistoryUseCase` and GET `/books/{id}/loans` with `page` (default 1) and `pageSize` (default 20, maximum 100) in `src/LibraryManager.Application/Loans/GetBookLoanHistory/GetBookLoanHistoryUseCase.cs` and `BooksController`
 - [ ] T059 [US3] Record `library_manager_loans_created`, `library_manager_loans_unavailable`, and `library_manager_loan_duration` in `src/LibraryManager.Api/Telemetry/LibraryManagerMetrics.cs` from the create-loan path
 - [X] T060 [US3] Reject inactive book, zero copies, and duplicate Active (UserId, BookId) with HTTP 422 Problem Details; reject unknown UserId or BookId with HTTP 404 in `src/LibraryManager.Application/Loans/CreateLoan/CreateLoanUseCase.cs`
 
@@ -182,7 +182,7 @@ description: "Task list for Library Manager API implementation"
 ### Tests for User Story 5
 
 - [X] T067 [P] [US5] Add failing 401/403/success mutation tests in `tests/LibraryManager.IntegrationTests/Security/AuthorizationTests.cs`
-- [ ] T068 [P] [US5] Add failing test that AuditEvent.ActorId equals authenticated subject in `tests/LibraryManager.IntegrationTests/Security/AuditActorTests.cs`
+- [X] T068 [P] [US5] Add failing test that AuditEvent.ActorId equals authenticated subject in `tests/LibraryManager.IntegrationTests/Security/AuditActorTests.cs`
 
 ### Implementation for User Story 5
 
@@ -225,13 +225,13 @@ description: "Task list for Library Manager API implementation"
 
 ### Tests for User Story 7
 
-- [ ] T079 [P] [US7] Add failing audit query, Librarian-required GET `/audit-events` (HTTP 403 without librarian), and rejected-mutation tests in `tests/LibraryManager.IntegrationTests/Audit/AuditEventTests.cs`
+- [X] T079 [P] [US7] Add failing audit query, Librarian-required GET `/audit-events` (HTTP 403 without librarian), and rejected-mutation tests in `tests/LibraryManager.IntegrationTests/Audit/AuditEventTests.cs`
 
 ### Implementation for User Story 7
 
-- [ ] T080 [US7] Implement `GetAuditEventsUseCase` with `page` (default 1) and `pageSize` (default 20, maximum 100) in `src/LibraryManager.Application/Audit/GetAuditEvents/GetAuditEventsUseCase.cs`
-- [ ] T081 [US7] Implement `AuditEventsController` GET `/audit-events` (Librarian) in `src/LibraryManager.Api/Controllers/AuditEventsController.cs`
-- [ ] T082 [US7] Copy `ICorrelationContext` and UTC `IClock` into `AuditEvent` in all mutation use cases under `src/LibraryManager.Application/`
+- [X] T080 [US7] Implement `GetAuditEventsUseCase` with `page` (default 1) and `pageSize` (default 20, maximum 100) in `src/LibraryManager.Application/Audit/GetAuditEvents/GetAuditEventsUseCase.cs`
+- [X] T081 [US7] Implement `AuditEventsController` GET `/audit-events` (Librarian) in `src/LibraryManager.Api/Controllers/AuditEventsController.cs`
+- [X] T082 [US7] Copy `ICorrelationContext` and UTC `IClock` into `AuditEvent` in all mutation use cases under `src/LibraryManager.Application/`
 
 **Checkpoint**: Audit trail is queryable and consistent with auth identity
 

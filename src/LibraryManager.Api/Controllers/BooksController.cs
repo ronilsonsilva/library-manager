@@ -7,6 +7,8 @@ using LibraryManager.Application.Books.GetBookAvailability;
 using LibraryManager.Application.Books.ListBooks;
 using LibraryManager.Application.Books.UpdateBook;
 using LibraryManager.Application.Common;
+using LibraryManager.Application.Loans;
+using LibraryManager.Application.Loans.GetBookLoanHistory;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -18,6 +20,7 @@ public sealed class BooksController(
     CreateBookUseCase createBook,
     GetBookUseCase getBook,
     GetBookAvailabilityUseCase getBookAvailability,
+    GetBookLoanHistoryUseCase getBookLoanHistory,
     ListBooksUseCase listBooks,
     UpdateBookUseCase updateBook,
     DeactivateBookUseCase deactivateBook) : ControllerBase
@@ -64,6 +67,19 @@ public sealed class BooksController(
     {
         var availability = await getBookAvailability.ExecuteAsync(id, cancellationToken);
         return Ok(availability);
+    }
+
+    [HttpGet("{id:guid}/loans")]
+    [HttpGet("{id:guid}/history")]
+    [Authorize]
+    public async Task<ActionResult<PagedResult<LoanDto>>> GetLoanHistory(
+        Guid id,
+        [FromQuery] int page = Pagination.DefaultPage,
+        [FromQuery] int pageSize = Pagination.DefaultPageSize,
+        CancellationToken cancellationToken = default)
+    {
+        var result = await getBookLoanHistory.ExecuteAsync(id, page, pageSize, cancellationToken);
+        return Ok(result);
     }
 
     [HttpPut("{id:guid}")]

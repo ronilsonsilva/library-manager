@@ -135,8 +135,37 @@ public sealed class ReturnAndCancelTests : IAsyncLifetime
         Assert.Equal(2, history.TotalCount);
         Assert.Contains(history.Items, item => item.Id == returnedLoan.Id && item.Status == "Returned");
         Assert.Contains(history.Items, item => item.Id == cancelledLoan.Id && item.Status == "Cancelled");
-        Assert.Equal(1, (await GetBookAsync(returnedBook.Id)).AvailableCopies);
-        Assert.Equal(1, (await GetBookAsync(cancelledBook.Id)).AvailableCopies);
+
+        var returnedBookHistory = await GetBookLoansAsync($"/books/{returnedBook.Id}/loans");
+        Assert.Contains(returnedBookHistory.Items, item => item.Id == returnedLoan.Id && item.Status == "Returned");
+        var cancelledBookHistory = await GetBookLoansAsync($"/books/{cancelledBook.Id}/history");
+        Assert.Contains(cancelledBookHistory.Items, item => item.Id == cancelledLoan.Id && item.Status == "Cancelled");
+
+        var catalogReturned = await GetBookAsync(returnedBook.Id);
+        var catalogCancelled = await GetBookAsync(cancelledBook.Id);
+        Assert.False(catalogReturned.IsActive);
+        Assert.False(catalogCancelled.IsActive);
+        Assert.Equal(1, catalogReturned.AvailableCopies);
+        Assert.Equal(1, catalogCancelled.AvailableCopies);
+    }
+
+    [Fact]
+    public async Task Book_loan_history_is_empty_for_a_new_book_and_404_for_unknown_book()
+    {
+        var book = await CreateBookAsync(1);
+
+        var empty = await GetBookLoansAsync($"/books/{book.Id}/loans");
+        Assert.Equal(1, empty.Page);
+        Assert.Equal(20, empty.PageSize);
+        Assert.Equal(0, empty.TotalCount);
+        Assert.Empty(empty.Items);
+
+        var missing = await _librarianA.GetAsync($"/books/{Guid.NewGuid()}/loans");
+        Assert.Equal(HttpStatusCode.NotFound, missing.StatusCode);
+
+        var anonymous = _hostA.CreateClient();
+        var unauthorized = await anonymous.GetAsync($"/books/{book.Id}/loans");
+        Assert.Equal(HttpStatusCode.Unauthorized, unauthorized.StatusCode);
     }
 
     [Fact]
@@ -310,6 +339,13 @@ public sealed class ReturnAndCancelTests : IAsyncLifetime
         var page = await _librarianA.GetFromJsonAsync<PagedResult<LoanDto>>(
             $"/users/{userId}/loans",
             JsonOptions);
+        Assert.NotNull(page);
+        return page;
+    }
+
+    private async Task<PagedResult<LoanDto>> GetBookLoansAsync(string path)
+    {
+        var page = await _librarianA.GetFromJsonAsync<PagedResult<LoanDto>>(path, JsonOptions);
         Assert.NotNull(page);
         return page;
     }
