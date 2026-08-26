@@ -27,14 +27,14 @@ description: "Task list for Library Manager API implementation"
 
 **Purpose**: Solution, projects, and shared build settings
 
-- [ ] T001 Create `LibraryManager.sln` and directories `src/`, `tests/`, `infrastructure/keycloak/`, `deploy/kubernetes/` at the repository root
-- [ ] T002 [P] Create `src/LibraryManager.Domain/LibraryManager.Domain.csproj` targeting `net10.0` with no NuGet packages
-- [ ] T003 [P] Create `src/LibraryManager.Application/LibraryManager.Application.csproj` targeting `net10.0` referencing Domain only
-- [ ] T004 [P] Create `src/LibraryManager.Infrastructure/LibraryManager.Infrastructure.csproj` targeting `net10.0` with EF Core 10, Npgsql, and StackExchange.Redis
-- [ ] T005 [P] Create `src/LibraryManager.Api/LibraryManager.Api.csproj` targeting `net10.0` with JwtBearer, Swashbuckle, health checks, and OpenTelemetry packages
-- [ ] T006 [P] Create `tests/LibraryManager.UnitTests/LibraryManager.UnitTests.csproj` with xUnit referencing Domain and Application
-- [ ] T007 [P] Create `tests/LibraryManager.IntegrationTests/LibraryManager.IntegrationTests.csproj` with xUnit, `Microsoft.AspNetCore.Mvc.Testing`, Testcontainers.PostgreSql, and Testcontainers.Redis
-- [ ] T008 Add `global.json`, `Directory.Build.props` (nullable, implicit usings), `.editorconfig`, and add all projects to `LibraryManager.sln`
+- [X] T001 Create `LibraryManager.sln` and directories `src/`, `tests/`, `infrastructure/keycloak/`, `deploy/kubernetes/` at the repository root
+- [X] T002 [P] Create `src/LibraryManager.Domain/LibraryManager.Domain.csproj` targeting `net10.0` with no NuGet packages
+- [X] T003 [P] Create `src/LibraryManager.Application/LibraryManager.Application.csproj` targeting `net10.0` referencing Domain only
+- [X] T004 [P] Create `src/LibraryManager.Infrastructure/LibraryManager.Infrastructure.csproj` targeting `net10.0` with EF Core 10, Npgsql, and StackExchange.Redis
+- [X] T005 [P] Create `src/LibraryManager.Api/LibraryManager.Api.csproj` targeting `net10.0` with JwtBearer, Swashbuckle, health checks, and OpenTelemetry packages
+- [X] T006 [P] Create `tests/LibraryManager.UnitTests/LibraryManager.UnitTests.csproj` with xUnit referencing Domain and Application
+- [X] T007 [P] Create `tests/LibraryManager.IntegrationTests/LibraryManager.IntegrationTests.csproj` with xUnit, `Microsoft.AspNetCore.Mvc.Testing`, Testcontainers.PostgreSql, and Testcontainers.Redis
+- [X] T008 Add `global.json`, `Directory.Build.props` (nullable, implicit usings), `.editorconfig`, and add all projects to `LibraryManager.sln`
 
 ---
 
@@ -44,18 +44,18 @@ description: "Task list for Library Manager API implementation"
 
 **CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T009 [P] Implement `Book` in `src/LibraryManager.Domain/Book.cs` per `data-model.md`
-- [ ] T010 [P] Implement `User` in `src/LibraryManager.Domain/User.cs` per `data-model.md`
-- [ ] T011 [P] Implement `Loan` and `LoanStatus` in `src/LibraryManager.Domain/Loan.cs` and `src/LibraryManager.Domain/LoanStatus.cs`
-- [ ] T012 [P] Implement `AuditEvent` in `src/LibraryManager.Domain/AuditEvent.cs`
-- [ ] T013 Create abstractions `IBookRepository`, `IUserRepository`, `ILoanRepository`, `IAuditRepository`, `IUnitOfWork`, `IIdempotencyStore`, `IOutboxWriter`, `IAvailabilityCache`, `ICurrentUserContext`, `ICorrelationContext`, `IClock` in `src/LibraryManager.Application/Abstractions/` (every public async method takes and propagates `CancellationToken`)
-- [ ] T014 Create `LibraryDbContext` in `src/LibraryManager.Infrastructure/Persistence/LibraryDbContext.cs`
-- [ ] T015 [P] Add `BookConfiguration` in `src/LibraryManager.Infrastructure/Persistence/Configurations/BookConfiguration.cs`
-- [ ] T016 [P] Add `UserConfiguration` in `src/LibraryManager.Infrastructure/Persistence/Configurations/UserConfiguration.cs`
-- [ ] T017 [P] Add `LoanConfiguration` with partial unique Active index in `src/LibraryManager.Infrastructure/Persistence/Configurations/LoanConfiguration.cs`
-- [ ] T018 [P] Add `AuditEventConfiguration` with jsonb `DataJson` in `src/LibraryManager.Infrastructure/Persistence/Configurations/AuditEventConfiguration.cs`
-- [ ] T019 [P] Add Infrastructure `IdempotencyEntry` entity and configuration in `src/LibraryManager.Infrastructure/Idempotency/IdempotencyEntry.cs` and `IdempotencyEntryConfiguration.cs`
-- [ ] T020 [P] Add Infrastructure `OutboxMessage` entity and configuration in `src/LibraryManager.Infrastructure/Outbox/OutboxMessage.cs` and `OutboxMessageConfiguration.cs`
+- [X] T009 [P] Implement `Book` in `src/LibraryManager.Domain/Book.cs` per `data-model.md`
+- [X] T010 [P] Implement `User` in `src/LibraryManager.Domain/User.cs` per `data-model.md`
+- [X] T011 [P] Implement `Loan` and `LoanStatus` in `src/LibraryManager.Domain/Loan.cs` and `src/LibraryManager.Domain/LoanStatus.cs`
+- [X] T012 [P] Implement `AuditEvent` in `src/LibraryManager.Domain/AuditEvent.cs`
+- [X] T013 Create abstractions `IBookRepository`, `IUserRepository`, `ILoanRepository`, `IAuditRepository`, `IUnitOfWork`, `IIdempotencyStore`, `IOutboxWriter`, `IAvailabilityCache`, `ICurrentUserContext`, `ICorrelationContext`, `IClock` in `src/LibraryManager.Application/Abstractions/` (every public async method takes and propagates `CancellationToken`)
+- [X] T014 Create `LibraryDbContext` in `src/LibraryManager.Infrastructure/Persistence/LibraryDbContext.cs`
+- [X] T015 [P] Add `BookConfiguration` in `src/LibraryManager.Infrastructure/Persistence/Configurations/BookConfiguration.cs`
+- [X] T016 [P] Add `UserConfiguration` in `src/LibraryManager.Infrastructure/Persistence/Configurations/UserConfiguration.cs`
+- [X] T017 [P] Add `LoanConfiguration` with partial unique Active index in `src/LibraryManager.Infrastructure/Persistence/Configurations/LoanConfiguration.cs`
+- [X] T018 [P] Add `AuditEventConfiguration` with jsonb `DataJson` in `src/LibraryManager.Infrastructure/Persistence/Configurations/AuditEventConfiguration.cs`
+- [X] T019 [P] Add Infrastructure `IdempotencyEntry` entity and configuration in `src/LibraryManager.Infrastructure/Idempotency/IdempotencyEntry.cs` and `IdempotencyEntryConfiguration.cs`
+- [X] T020 [P] Add Infrastructure `OutboxMessage` entity and configuration in `src/LibraryManager.Infrastructure/Outbox/OutboxMessage.cs` and `OutboxMessageConfiguration.cs`
 - [ ] T021 Implement repositories in `src/LibraryManager.Infrastructure/Persistence/Repositories/BookRepository.cs`, `UserRepository.cs`, `LoanRepository.cs`, `AuditRepository.cs` (async methods take `CancellationToken`)
 - [ ] T022 Implement `IUnitOfWork` in `src/LibraryManager.Infrastructure/Persistence/UnitOfWork.cs` (`SaveChangesAsync` / transaction APIs take `CancellationToken`)
 - [ ] T023 Implement `IIdempotencyStore` with `INSERT ON CONFLICT` in `src/LibraryManager.Infrastructure/Idempotency/IdempotencyStore.cs` (async methods take `CancellationToken`; US3 may call reserve only; hash/replay/409 is T064)
@@ -71,7 +71,7 @@ description: "Task list for Library Manager API implementation"
 - [ ] T033 Register composition in `src/LibraryManager.Infrastructure/DependencyInjection.cs` and `src/LibraryManager.Api/Program.cs`
 - [ ] T034 Add `CustomWebApplicationFactory` with Testcontainers PostgreSQL and Redis in `tests/LibraryManager.IntegrationTests/Infrastructure/CustomWebApplicationFactory.cs`. The factory MUST support two (or more) host instances that share one PostgreSQL connection string and one Redis connection string; apply EF migrations once; do not start a second database container per host.
 - [ ] T035 Add test-only authentication scheme gated by `Testing:UseTestAuth` in `tests/LibraryManager.IntegrationTests/Infrastructure/TestAuthHandler.cs`
-- [ ] T036 Add initial EF Core migration in `src/LibraryManager.Infrastructure/Persistence/Migrations/`
+- [X] T036 Add initial EF Core migration in `src/LibraryManager.Infrastructure/Persistence/Migrations/`
 
 **Checkpoint**: Foundation ready — user story implementation can begin
 
