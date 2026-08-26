@@ -15,6 +15,8 @@ public sealed class CreateUserUseCase(
 {
     public async Task<UserDto> ExecuteAsync(string name, string email, CancellationToken cancellationToken)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         var existing = await users.GetByEmailAsync(email, cancellationToken);
         if (existing is not null)
         {

@@ -310,13 +310,13 @@ description: "Task list for Library Manager API implementation"
 
 **Purpose**: Contract alignment, leftover tests, CancellationToken tests and audit, and quickstart validation
 
-- [ ] T104 [P] Align remaining OpenAPI responses (HTTP 422 business rules, HTTP 404 missing resources, HTTP 201 replay, Problem Details `correlationId`) in `src/LibraryManager.Api/` with `specs/001-library-manager/contracts/openapi.yaml`
-- [ ] T105 Add Domain/Application unit tests for remaining invariants in `tests/LibraryManager.UnitTests/`
-- [ ] T106 Ensure production secrets cannot be enabled via `Testing:UseTestAuth` in `src/LibraryManager.Api/Program.cs`
+- [X] T104 [P] Align remaining OpenAPI responses (HTTP 422 business rules, HTTP 404 missing resources, HTTP 201 replay, Problem Details `correlationId`) in `src/LibraryManager.Api/` with `specs/001-library-manager/contracts/openapi.yaml`
+- [X] T105 Add Domain/Application unit tests for remaining invariants in `tests/LibraryManager.UnitTests/`
+- [X] T106 Ensure production secrets cannot be enabled via `Testing:UseTestAuth` in `src/LibraryManager.Api/Program.cs`
 - [X] T107 Run `specs/001-library-manager/quickstart.md` validation (compose health, smoke loan, `dotnet test`)
-- [ ] T108 Review English-only nomenclature across `src/`, `tests/`, `deploy/`, and `infrastructure/`
-- [ ] T110 [P] Add failing unit tests that a cancelled `CancellationToken` is observed by a public async Application method (`OperationCanceledException` or equivalent) in `tests/LibraryManager.UnitTests/Application/CancellationTokenPropagationTests.cs`
-- [ ] T109 Audit that all public async Application, Infrastructure, and Api methods accept and propagate `CancellationToken` (FR-066) under `src/LibraryManager.Application/`, `src/LibraryManager.Infrastructure/`, and `src/LibraryManager.Api/`
+- [X] T108 Review English-only nomenclature across `src/`, `tests/`, `deploy/`, and `infrastructure/`
+- [X] T110 [P] Add failing unit tests that a cancelled `CancellationToken` is observed by a public async Application method (`OperationCanceledException` or equivalent) in `tests/LibraryManager.UnitTests/Application/CancellationTokenPropagationTests.cs`
+- [X] T109 Audit that all public async Application, Infrastructure, and Api methods accept and propagate `CancellationToken` (FR-066) under `src/LibraryManager.Application/`, `src/LibraryManager.Infrastructure/`, and `src/LibraryManager.Api/`
 
 ---
 
@@ -431,3 +431,16 @@ Task: "GetUserLoansUseCase in src/LibraryManager.Application/Users/GetUserLoans/
 - Verify tests fail before implementing
 - Commit after each task or logical group
 - Stop at checkpoints to validate independently
+
+---
+
+## Phase 14: Convergence
+
+- [X] T111 Add OpenTelemetry Redis instrumentation (StackExchange.Redis) in `src/LibraryManager.Api/Telemetry/OpenTelemetryConfiguration.cs` per FR-048 and plan.md Technical Context (`partial`)
+- [X] T112 Document GET `/books/{id}/history` in `specs/001-library-manager/contracts/openapi.yaml` or remove the extra route from `src/LibraryManager.Api/Controllers/BooksController.cs` per openapi.yaml `/books/{id}/loans` (`unrequested`)
+
+---
+
+## Phase 15: Convergence
+
+- [X] T113 Wrap `UpdateBookUseCase` TotalCopies SQL, catalog SaveChanges, AuditEvent, and BookAvailabilityChanged Outbox in one PostgreSQL transaction via `IUnitOfWork.ExecuteInTransactionAsync` in `src/LibraryManager.Application/Books/UpdateBook/UpdateBookUseCase.cs` per Constitution III, FR-030, FR-031, and FR-043 (`contradicts`)

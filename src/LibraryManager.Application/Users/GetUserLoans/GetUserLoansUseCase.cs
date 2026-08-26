@@ -12,6 +12,8 @@ public sealed class GetUserLoansUseCase(IUserRepository users, ILoanRepository l
         int pageSize,
         CancellationToken cancellationToken)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         var user = await users.GetByIdAsync(userId, cancellationToken);
         if (user is null)
         {

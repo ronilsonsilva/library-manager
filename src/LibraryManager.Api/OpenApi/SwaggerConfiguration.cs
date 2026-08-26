@@ -21,6 +21,7 @@ public static class SwaggerConfiguration
                 Title = "Library Manager API",
                 Version = "v1"
             });
+            options.OperationFilter<ContractResponseOperationFilter>();
 
             if (string.IsNullOrWhiteSpace(authority))
             {

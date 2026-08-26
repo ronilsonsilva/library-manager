@@ -1,6 +1,8 @@
 using LibraryManager.Application.Abstractions;
 using LibraryManager.Application.Telemetry;
+using LibraryManager.Infrastructure.Caching;
 using Npgsql;
+using OpenTelemetry.Instrumentation.StackExchangeRedis;
 using OpenTelemetry.Logs;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
@@ -42,7 +44,15 @@ public static class OpenTelemetryConfiguration
                     };
                 })
                 .AddHttpClientInstrumentation()
-                .AddNpgsql();
+                .AddNpgsql()
+                .AddRedisInstrumentation()
+                .ConfigureRedisInstrumentation((services, instrumentation) =>
+                {
+                    if (services.GetService<IAvailabilityCache>() is RedisAvailabilityCache cache)
+                    {
+                        cache.AttachInstrumentation(connection => instrumentation.AddConnection(connection));
+                    }
+                });
 
             if (!string.IsNullOrWhiteSpace(otlpEndpoint))
             {

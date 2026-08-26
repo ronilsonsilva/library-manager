@@ -12,6 +12,8 @@ public sealed class ListBooksUseCase(IBookRepository books)
         bool? isActive,
         CancellationToken cancellationToken)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         var (normalizedPage, normalizedPageSize) = Pagination.Normalize(page, pageSize);
         var (items, totalCount) = await books.ListAsync(
             normalizedPage,

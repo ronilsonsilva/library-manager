@@ -21,6 +21,8 @@ public sealed class CreateBookUseCase(
         int totalCopies,
         CancellationToken cancellationToken)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         var existing = await books.GetByIsbnAsync(isbn, cancellationToken);
         if (existing is not null)
         {

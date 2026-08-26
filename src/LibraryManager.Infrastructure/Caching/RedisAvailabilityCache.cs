@@ -16,17 +16,42 @@ public sealed class RedisAvailabilityCache : IAvailabilityCache
     };
 
     private readonly Lazy<IConnectionMultiplexer> _redis;
+    private readonly object _instrumentationGate = new();
+    private Action<IConnectionMultiplexer>? _onConnected;
 
     public RedisAvailabilityCache(IConfiguration configuration)
     {
         var connectionString = configuration.GetConnectionString("Redis") ?? "localhost:6379";
-        _redis = new Lazy<IConnectionMultiplexer>(() => ConnectionMultiplexer.Connect(connectionString));
+        _redis = new Lazy<IConnectionMultiplexer>(() =>
+        {
+            var multiplexer = ConnectionMultiplexer.Connect(connectionString);
+            lock (_instrumentationGate)
+            {
+                _onConnected?.Invoke(multiplexer);
+            }
+
+            return multiplexer;
+        });
+    }
+
+    public void AttachInstrumentation(Action<IConnectionMultiplexer> onConnected)
+    {
+        ArgumentNullException.ThrowIfNull(onConnected);
+
+        lock (_instrumentationGate)
+        {
+            _onConnected = onConnected;
+            if (_redis.IsValueCreated)
+            {
+                onConnected(_redis.Value);
+            }
+        }
     }
 
     public async Task<BookAvailabilityCacheItem?> GetAsync(Guid bookId, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        var value = await _redis.Value.GetDatabase().StringGetAsync(Key(bookId));
+        var value = await _redis.Value.GetDatabase().StringGetAsync(Key(bookId)).WaitAsync(cancellationToken);
         if (value.IsNullOrEmpty)
         {
             return null;
@@ -42,13 +67,13 @@ public sealed class RedisAvailabilityCache : IAvailabilityCache
         await _redis.Value.GetDatabase().StringSetAsync(
             Key(item.BookId),
             json,
-            TimeSpan.FromSeconds(TimeToLiveSeconds));
+            TimeSpan.FromSeconds(TimeToLiveSeconds)).WaitAsync(cancellationToken);
     }
 
     public async Task RemoveAsync(Guid bookId, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        await _redis.Value.GetDatabase().KeyDeleteAsync(Key(bookId));
+        await _redis.Value.GetDatabase().KeyDeleteAsync(Key(bookId)).WaitAsync(cancellationToken);
     }
 
     public static string Key(Guid bookId) => $"library-manager:books:{bookId}:availability";

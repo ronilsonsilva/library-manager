@@ -48,6 +48,31 @@ public sealed class DockerStackTests
         Assert.Contains("library-manager-swagger", swagger, StringComparison.Ordinal);
         Assert.Contains("http://localhost:8080/swagger/oauth2-redirect.html", swagger, StringComparison.Ordinal);
         Assert.DoesNotMatch(new Regex("OAuthClientSecret", RegexOptions.CultureInvariant), swagger);
+        Assert.Contains("OperationFilter<ContractResponseOperationFilter>", swagger, StringComparison.Ordinal);
+        Assert.True(File.Exists(RepoPath(
+            "src", "LibraryManager.Api", "OpenApi", "ContractResponseOperationFilter.cs")));
+    }
+
+    [Fact]
+    public void OpenTelemetry_instruments_stackexchange_redis()
+    {
+        var telemetry = File.ReadAllText(RepoPath(
+            "src", "LibraryManager.Api", "Telemetry", "OpenTelemetryConfiguration.cs"));
+        var project = File.ReadAllText(RepoPath("src", "LibraryManager.Api", "LibraryManager.Api.csproj"));
+
+        Assert.Contains("AddRedisInstrumentation", telemetry, StringComparison.Ordinal);
+        Assert.Contains("OpenTelemetry.Instrumentation.StackExchangeRedis", project, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void OpenApi_documents_book_loan_history_alias()
+    {
+        var openApi = File.ReadAllText(RepoPath(
+            "specs", "001-library-manager", "contracts", "openapi.yaml"));
+
+        Assert.Contains("/books/{id}/loans:", openApi, StringComparison.Ordinal);
+        Assert.Contains("/books/{id}/history:", openApi, StringComparison.Ordinal);
+        Assert.Contains("getBookLoanHistoryAlias", openApi, StringComparison.Ordinal);
     }
 
     private static string RepoPath(params string[] segments)

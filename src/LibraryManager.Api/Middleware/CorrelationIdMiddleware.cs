@@ -13,6 +13,8 @@ public sealed class CorrelationIdMiddleware(RequestDelegate next, ILogger<Correl
 
     public async Task InvokeAsync(HttpContext context, CorrelationContext correlation)
     {
+        context.RequestAborted.ThrowIfCancellationRequested();
+
         var incoming = context.Request.Headers[HeaderName].FirstOrDefault();
         var correlationId = incoming is not null && ValidCorrelationId.IsMatch(incoming)
             ? incoming

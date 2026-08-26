@@ -162,6 +162,40 @@ public sealed class BookCatalogTests : IAsyncLifetime
         Assert.NotNull(unchanged);
         Assert.Equal(2, unchanged.TotalCopies);
         Assert.Equal(0, unchanged.AvailableCopies);
+
+        await using var scope = _factory.Services.CreateAsyncScope();
+        var db = scope.ServiceProvider.GetRequiredService<LibraryDbContext>();
+        Assert.Equal(
+            0,
+            await db.AuditEvents.CountAsync(audit =>
+                audit.Action == AuditMetadata.BookUpdated && audit.EntityId == created.Id));
+    }
+
+    [Fact]
+    public async Task Update_total_copies_writes_audit_and_outbox_together()
+    {
+        var created = await CreateBookAsync("Dune", UniqueIsbn(), "Frank Herbert", 2);
+
+        var response = await _librarian.PutAsJsonAsync(
+            $"/books/{created.Id}",
+            new { title = "Dune", author = "Frank Herbert", totalCopies = 4 });
+        response.EnsureSuccessStatusCode();
+        var updated = await response.Content.ReadFromJsonAsync<BookDto>(JsonOptions);
+        Assert.NotNull(updated);
+        Assert.Equal(4, updated.TotalCopies);
+        Assert.Equal(4, updated.AvailableCopies);
+
+        await using var scope = _factory.Services.CreateAsyncScope();
+        var db = scope.ServiceProvider.GetRequiredService<LibraryDbContext>();
+        Assert.Equal(
+            1,
+            await db.AuditEvents.CountAsync(audit =>
+                audit.Action == AuditMetadata.BookUpdated && audit.EntityId == created.Id));
+        Assert.Contains(
+            await db.OutboxMessages.ToListAsync(),
+            message =>
+                message.Type == AvailabilityOutbox.MessageType
+                && message.PayloadJson.Contains(created.Id.ToString(), StringComparison.Ordinal));
     }
 
     [Fact]

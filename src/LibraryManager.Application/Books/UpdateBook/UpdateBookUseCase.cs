@@ -25,60 +25,75 @@ public sealed class UpdateBookUseCase(
         int totalCopies,
         CancellationToken cancellationToken)
     {
-        var book = await books.GetByIdAsync(id, cancellationToken)
-            ?? throw new EntityNotFoundException(AuditMetadata.BookEntity);
+        cancellationToken.ThrowIfCancellationRequested();
 
-        if (totalCopies < 1)
-        {
-            throw new DomainException("TotalCopies must be at least 1.");
-        }
-
-        var availabilityChanged = totalCopies != book.TotalCopies;
-        if (availabilityChanged)
-        {
-            var updated = await books.TryUpdateTotalCopiesAsync(id, totalCopies, cancellationToken);
-            if (!updated)
+        var outcome = await unitOfWork.ExecuteInTransactionAsync(
+            async ct =>
             {
-                throw new BusinessRuleException(
-                    "TotalCopies cannot be below the number of copies currently on loan.");
-            }
-        }
+                var book = await books.GetByIdAsync(id, ct)
+                    ?? throw new EntityNotFoundException(AuditMetadata.BookEntity);
 
-        var utcNow = clock.UtcNow;
-        book.UpdateCatalog(title, author, utcNow);
+                if (totalCopies < 1)
+                {
+                    throw new DomainException("TotalCopies must be at least 1.");
+                }
 
-        var audit = AuditEvent.Create(
-            AuditMetadata.BookEntity,
-            book.Id,
-            AuditMetadata.BookUpdated,
-            currentUser.ActorId,
-            utcNow,
-            correlation.CorrelationId,
-            JsonPayload.Serialize(new
-            {
-                book.Title,
-                book.Isbn,
-                book.Author,
-                book.TotalCopies
-            }));
-        await audits.AddAsync(audit, cancellationToken);
+                var availabilityChanged = totalCopies != book.TotalCopies;
+                if (availabilityChanged)
+                {
+                    var updated = await books.TryUpdateTotalCopiesAsync(id, totalCopies, ct);
+                    if (!updated)
+                    {
+                        throw new BusinessRuleException(
+                            "TotalCopies cannot be below the number of copies currently on loan.");
+                    }
+                }
 
-        if (availabilityChanged)
+                var utcNow = clock.UtcNow;
+                book.UpdateCatalog(title, author, utcNow);
+
+                var audit = AuditEvent.Create(
+                    AuditMetadata.BookEntity,
+                    book.Id,
+                    AuditMetadata.BookUpdated,
+                    currentUser.ActorId,
+                    utcNow,
+                    correlation.CorrelationId,
+                    JsonPayload.Serialize(new
+                    {
+                        book.Title,
+                        book.Isbn,
+                        book.Author,
+                        book.TotalCopies
+                    }));
+                await audits.AddAsync(audit, ct);
+
+                if (availabilityChanged)
+                {
+                    await outbox.WriteAsync(
+                        AvailabilityOutbox.MessageType,
+                        AvailabilityOutbox.Payload(book.Id, correlation.CorrelationId),
+                        utcNow,
+                        ct);
+                }
+
+                await unitOfWork.SaveChangesAsync(ct);
+                return new UpdateBookOutcome(BookDto.From(book), availabilityChanged);
+            },
+            cancellationToken);
+
+        if (outcome.AvailabilityChanged)
         {
-            await outbox.WriteAsync(
-                AvailabilityOutbox.MessageType,
-                AvailabilityOutbox.Payload(book.Id, correlation.CorrelationId),
-                utcNow,
+            await AvailabilityCacheInvalidation.TryRemoveAsync(
+                cache,
+                logger,
+                metrics,
+                outcome.Book.Id,
                 cancellationToken);
         }
 
-        await unitOfWork.SaveChangesAsync(cancellationToken);
-
-        if (availabilityChanged)
-        {
-            await AvailabilityCacheInvalidation.TryRemoveAsync(cache, logger, metrics, book.Id, cancellationToken);
-        }
-
-        return BookDto.From(book);
+        return outcome.Book;
     }
+
+    private sealed record UpdateBookOutcome(BookDto Book, bool AvailabilityChanged);
 }

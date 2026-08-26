@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
+using LibraryManager.Api.Middleware;
 using LibraryManager.Application.Abstractions;
 
 namespace LibraryManager.Api.Security;
@@ -22,6 +24,12 @@ public static class AuthenticationConfiguration
                 policy.RequireRole(LibrarianPolicy.Role);
             });
         });
+
+        if (environment.IsProduction() && configuration.GetValue("Testing:UseTestAuth", false))
+        {
+            throw new InvalidOperationException(
+                "Testing:UseTestAuth cannot be enabled in the Production environment.");
+        }
 
         if (configuration.GetValue("Testing:UseTestAuth", false))
         {
@@ -67,6 +75,20 @@ public static class AuthenticationConfiguration
                     !environment.IsDevelopment()
                     && !metadataUrl.StartsWith("http://", StringComparison.OrdinalIgnoreCase);
                 options.MapInboundClaims = false;
+                options.Events = new JwtBearerEvents
+                {
+                    OnChallenge = context => WriteProblemAsync(
+                        context.HttpContext,
+                        StatusCodes.Status401Unauthorized,
+                        "Unauthorized",
+                        "Missing or invalid access token.",
+                        () => context.HandleResponse()),
+                    OnForbidden = context => WriteProblemAsync(
+                        context.HttpContext,
+                        StatusCodes.Status403Forbidden,
+                        "Forbidden",
+                        "Authenticated caller lacks the required role.")
+                };
                 options.TokenValidationParameters = new TokenValidationParameters
                 {
                     ValidateIssuer = true,
@@ -81,5 +103,34 @@ public static class AuthenticationConfiguration
             });
 
         return services;
+    }
+
+    private static async Task WriteProblemAsync(
+        HttpContext httpContext,
+        int statusCode,
+        string title,
+        string detail,
+        Action? beforeWrite = null)
+    {
+        beforeWrite?.Invoke();
+        if (httpContext.Response.HasStarted)
+        {
+            return;
+        }
+
+        var correlationId = httpContext.Response.Headers[CorrelationIdMiddleware.HeaderName].FirstOrDefault()
+            ?? httpContext.Request.Headers[CorrelationIdMiddleware.HeaderName].FirstOrDefault();
+        var problem = new ProblemDetails
+        {
+            Status = statusCode,
+            Title = title,
+            Detail = detail,
+            Instance = httpContext.Request.Path
+        };
+        problem.Extensions["correlationId"] = correlationId;
+
+        httpContext.Response.StatusCode = statusCode;
+        httpContext.Response.ContentType = "application/problem+json";
+        await httpContext.Response.WriteAsJsonAsync(problem);
     }
 }

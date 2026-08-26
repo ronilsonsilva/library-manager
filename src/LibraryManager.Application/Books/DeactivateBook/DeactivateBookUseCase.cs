@@ -19,6 +19,8 @@ public sealed class DeactivateBookUseCase(
 {
     public async Task ExecuteAsync(Guid id, CancellationToken cancellationToken)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         var book = await books.GetByIdAsync(id, cancellationToken)
             ?? throw new EntityNotFoundException(AuditMetadata.BookEntity);
 

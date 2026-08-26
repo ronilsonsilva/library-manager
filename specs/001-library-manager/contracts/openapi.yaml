@@ -149,6 +149,7 @@ paths:
     get:
       tags: [Loans]
       operationId: getBookLoanHistory
+      summary: Loan history for the book
       security: [{ bearerAuth: [] }]
       parameters:
         - $ref: '#/components/parameters/Id'
@@ -157,6 +158,24 @@ paths:
       responses:
         '200':
           description: Loan history for the book
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/LoanListResponse' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+  /books/{id}/history:
+    get:
+      tags: [Loans]
+      operationId: getBookLoanHistoryAlias
+      summary: Alias of GET /books/{id}/loans
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/Id'
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200':
+          description: Loan history for the book (same as GET /books/{id}/loans)
           content:
             application/json:
               schema: { $ref: '#/components/schemas/LoanListResponse' }

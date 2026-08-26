@@ -168,6 +168,12 @@ public sealed class AuditEventTests : IAsyncLifetime
             JsonOptions);
         Assert.NotNull(bookHistory);
         Assert.Contains(bookHistory.Items, item => item.Id == loan.Id);
+
+        var bookHistoryAlias = await reader.GetFromJsonAsync<PagedResult<LoanDto>>(
+            $"/books/{book.Id}/history",
+            JsonOptions);
+        Assert.NotNull(bookHistoryAlias);
+        Assert.Contains(bookHistoryAlias.Items, item => item.Id == loan.Id);
     }
 
     private async Task<BookDto> CreateBookAsync(int totalCopies)
