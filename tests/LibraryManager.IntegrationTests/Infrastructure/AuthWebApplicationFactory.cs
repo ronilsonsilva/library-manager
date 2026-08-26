@@ -1,9 +1,6 @@
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
-using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace LibraryManager.IntegrationTests.Infrastructure;
 
@@ -11,36 +8,17 @@ public sealed class AuthWebApplicationFactory : WebApplicationFactory<Program>
 {
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
-        builder.UseEnvironment("Testing");
-        builder.UseSetting("Testing:UseTestAuth", "true");
-        builder.UseSetting("Authentication:Authority", "http://localhost:8081/realms/library-manager");
-        builder.UseSetting("Authentication:Audience", "library-manager-api");
-
+        builder.UseSetting("ConnectionStrings:Postgres", "Host=127.0.0.1;Port=1;Database=unused;Username=x;Password=x");
+        builder.UseSetting("ConnectionStrings:Redis", "localhost:1");
         builder.ConfigureAppConfiguration((_, config) =>
         {
             config.AddInMemoryCollection(new Dictionary<string, string?>
             {
-                ["Testing:UseTestAuth"] = "true",
-                ["Authentication:Authority"] = "http://localhost:8081/realms/library-manager",
-                ["Authentication:Audience"] = "library-manager-api"
+                ["ConnectionStrings:Postgres"] = "Host=127.0.0.1;Port=1;Database=unused;Username=x;Password=x",
+                ["ConnectionStrings:Redis"] = "localhost:1"
             });
         });
 
-        builder.ConfigureTestServices(services =>
-        {
-            services
-                .AddAuthentication(TestAuthHandler.SchemeName)
-                .AddScheme<AuthenticationSchemeOptions, TestAuthHandler>(
-                    TestAuthHandler.SchemeName,
-                    _ => { });
-
-            services.PostConfigure<AuthenticationOptions>(options =>
-            {
-                options.DefaultAuthenticateScheme = TestAuthHandler.SchemeName;
-                options.DefaultChallengeScheme = TestAuthHandler.SchemeName;
-                options.DefaultForbidScheme = TestAuthHandler.SchemeName;
-                options.DefaultScheme = TestAuthHandler.SchemeName;
-            });
-        });
+        TestHostConfiguration.ApplyTestAuthentication(builder);
     }
 }

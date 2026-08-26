@@ -56,20 +56,20 @@ description: "Task list for Library Manager API implementation"
 - [X] T018 [P] Add `AuditEventConfiguration` with jsonb `DataJson` in `src/LibraryManager.Infrastructure/Persistence/Configurations/AuditEventConfiguration.cs`
 - [X] T019 [P] Add Infrastructure `IdempotencyEntry` entity and configuration in `src/LibraryManager.Infrastructure/Idempotency/IdempotencyEntry.cs` and `IdempotencyEntryConfiguration.cs`
 - [X] T020 [P] Add Infrastructure `OutboxMessage` entity and configuration in `src/LibraryManager.Infrastructure/Outbox/OutboxMessage.cs` and `OutboxMessageConfiguration.cs`
-- [ ] T021 Implement repositories in `src/LibraryManager.Infrastructure/Persistence/Repositories/BookRepository.cs`, `UserRepository.cs`, `LoanRepository.cs`, `AuditRepository.cs` (async methods take `CancellationToken`)
-- [ ] T022 Implement `IUnitOfWork` in `src/LibraryManager.Infrastructure/Persistence/UnitOfWork.cs` (`SaveChangesAsync` / transaction APIs take `CancellationToken`)
+- [X] T021 Implement repositories in `src/LibraryManager.Infrastructure/Persistence/Repositories/BookRepository.cs`, `UserRepository.cs`, `LoanRepository.cs`, `AuditRepository.cs` (async methods take `CancellationToken`)
+- [X] T022 Implement `IUnitOfWork` in `src/LibraryManager.Infrastructure/Persistence/UnitOfWork.cs` (`SaveChangesAsync` / transaction APIs take `CancellationToken`)
 - [ ] T023 Implement `IIdempotencyStore` with `INSERT ON CONFLICT` in `src/LibraryManager.Infrastructure/Idempotency/IdempotencyStore.cs` (async methods take `CancellationToken`; US3 may call reserve only; hash/replay/409 is T064)
-- [ ] T024 Implement `IOutboxWriter` using the current `LibraryDbContext` transaction in `src/LibraryManager.Infrastructure/Outbox/OutboxWriter.cs` (async methods take `CancellationToken`)
+- [X] T024 Implement `IOutboxWriter` using the current `LibraryDbContext` transaction in `src/LibraryManager.Infrastructure/Outbox/OutboxWriter.cs` (async methods take `CancellationToken`)
 - [ ] T025 Implement `IAvailabilityCache` in `src/LibraryManager.Infrastructure/Caching/RedisAvailabilityCache.cs` (key `library-manager:books:{bookId}:availability`, TTL 60s; async methods take `CancellationToken`)
-- [ ] T026 [P] Implement `IClock` in `src/LibraryManager.Infrastructure/Time/SystemClock.cs`
+- [X] T026 [P] Implement `IClock` in `src/LibraryManager.Infrastructure/Time/SystemClock.cs`
 - [X] T027 [P] Implement `ICurrentUserContext` from JWT `sub` in `src/LibraryManager.Api/Security/CurrentUserContext.cs`
-- [ ] T028 [P] Implement `ICorrelationContext` in `src/LibraryManager.Api/Middleware/CorrelationContext.cs`
+- [X] T028 [P] Implement `ICorrelationContext` in `src/LibraryManager.Api/Middleware/CorrelationContext.cs`
 - [X] T029 Configure JwtBearer (`Authentication:Authority`, `Authentication:Audience`, issuer/audience/signature/lifetime, `MapInboundClaims = false`, `RoleClaimType = roles`) and Librarian policy in `src/LibraryManager.Api/Program.cs` and `src/LibraryManager.Api/Security/LibrarianPolicy.cs`
-- [ ] T030 Add `CorrelationIdMiddleware` for `X-Correlation-ID` in `src/LibraryManager.Api/Middleware/CorrelationIdMiddleware.cs`
-- [ ] T031 Configure RFC Problem Details and `src/LibraryManager.Api/appsettings.json` plus `appsettings.Development.json`
+- [X] T030 Add `CorrelationIdMiddleware` for `X-Correlation-ID` in `src/LibraryManager.Api/Middleware/CorrelationIdMiddleware.cs`
+- [X] T031 Configure RFC Problem Details and `src/LibraryManager.Api/appsettings.json` plus `appsettings.Development.json`
 - [ ] T032 Map anonymous `GET /health/live` (process-only, 200 if the process is up) and `GET /health/ready` (Postgres + Redis, HTTP 503 when a dependency is down) in `src/LibraryManager.Api/Health/HealthEndpoints.cs` and `Program.cs`
-- [ ] T033 Register composition in `src/LibraryManager.Infrastructure/DependencyInjection.cs` and `src/LibraryManager.Api/Program.cs`
-- [ ] T034 Add `CustomWebApplicationFactory` with Testcontainers PostgreSQL and Redis in `tests/LibraryManager.IntegrationTests/Infrastructure/CustomWebApplicationFactory.cs`. The factory MUST support two (or more) host instances that share one PostgreSQL connection string and one Redis connection string; apply EF migrations once; do not start a second database container per host.
+- [X] T033 Register composition in `src/LibraryManager.Infrastructure/DependencyInjection.cs` and `src/LibraryManager.Api/Program.cs`
+- [X] T034 Add `CustomWebApplicationFactory` with Testcontainers PostgreSQL and Redis in `tests/LibraryManager.IntegrationTests/Infrastructure/CustomWebApplicationFactory.cs`. The factory MUST support two (or more) host instances that share one PostgreSQL connection string and one Redis connection string; apply EF migrations once; do not start a second database container per host.
 - [X] T035 Add test-only authentication scheme gated by `Testing:UseTestAuth` in `tests/LibraryManager.IntegrationTests/Infrastructure/TestAuthHandler.cs`
 - [X] T036 Add initial EF Core migration in `src/LibraryManager.Infrastructure/Persistence/Migrations/`
 
@@ -87,18 +87,18 @@ description: "Task list for Library Manager API implementation"
 
 > Write these tests FIRST and ensure they FAIL before implementation
 
-- [ ] T037 [P] [US1] Add Domain unit tests for Book invariants in `tests/LibraryManager.UnitTests/Domain/BookTests.cs`
-- [ ] T038 [P] [US1] Add failing integration tests for create/list/get/update/deactivate, duplicate ISBN (HTTP 422), ISBN unchanged after PUT, TotalCopies below borrowed (HTTP 422), GET unknown book (HTTP 404), and list pagination (`page` default 1, `pageSize` default 20, max 100) in `tests/LibraryManager.IntegrationTests/Books/BookCatalogTests.cs`
+- [X] T037 [P] [US1] Add Domain unit tests for Book invariants in `tests/LibraryManager.UnitTests/Domain/BookTests.cs`
+- [X] T038 [P] [US1] Add failing integration tests for create/list/get/update/deactivate, duplicate ISBN (HTTP 422), ISBN unchanged after PUT, TotalCopies below borrowed (HTTP 422), GET unknown book (HTTP 404), and list pagination (`page` default 1, `pageSize` default 20, max 100) in `tests/LibraryManager.IntegrationTests/Books/BookCatalogTests.cs`
 
 ### Implementation for User Story 1
 
-- [ ] T039 [P] [US1] Implement `CreateBookUseCase` in `src/LibraryManager.Application/Books/CreateBook/CreateBookUseCase.cs`
-- [ ] T040 [P] [US1] Implement `GetBookUseCase` in `src/LibraryManager.Application/Books/GetBook/GetBookUseCase.cs`
-- [ ] T041 [P] [US1] Implement `ListBooksUseCase` with `page` (default 1) and `pageSize` (default 20, maximum 100) in `src/LibraryManager.Application/Books/ListBooks/ListBooksUseCase.cs`
-- [ ] T042 [P] [US1] Implement `UpdateBookUseCase` so ISBN cannot change and TotalCopies below borrowed copies is rejected with HTTP 422 via atomic SQL in `src/LibraryManager.Application/Books/UpdateBook/UpdateBookUseCase.cs` and `BookRepository`
-- [ ] T043 [US1] Implement `DeactivateBookUseCase` in `src/LibraryManager.Application/Books/DeactivateBook/DeactivateBookUseCase.cs`
-- [ ] T044 [US1] Implement `BooksController` (Librarian mutations, authenticated reads) in `src/LibraryManager.Api/Controllers/BooksController.cs` matching `specs/001-library-manager/contracts/openapi.yaml`
-- [ ] T045 [US1] Persist BookCreated/BookUpdated/BookDeactivated `AuditEvent` in the same transaction in `src/LibraryManager.Application/Books/CreateBook/CreateBookUseCase.cs`, `UpdateBookUseCase.cs`, and `DeactivateBookUseCase.cs`
+- [X] T039 [P] [US1] Implement `CreateBookUseCase` in `src/LibraryManager.Application/Books/CreateBook/CreateBookUseCase.cs`
+- [X] T040 [P] [US1] Implement `GetBookUseCase` in `src/LibraryManager.Application/Books/GetBook/GetBookUseCase.cs`
+- [X] T041 [P] [US1] Implement `ListBooksUseCase` with `page` (default 1) and `pageSize` (default 20, maximum 100) in `src/LibraryManager.Application/Books/ListBooks/ListBooksUseCase.cs`
+- [X] T042 [P] [US1] Implement `UpdateBookUseCase` so ISBN cannot change and TotalCopies below borrowed copies is rejected with HTTP 422 via atomic SQL in `src/LibraryManager.Application/Books/UpdateBook/UpdateBookUseCase.cs` and `BookRepository`
+- [X] T043 [US1] Implement `DeactivateBookUseCase` in `src/LibraryManager.Application/Books/DeactivateBook/DeactivateBookUseCase.cs`
+- [X] T044 [US1] Implement `BooksController` (Librarian mutations, authenticated reads) in `src/LibraryManager.Api/Controllers/BooksController.cs` matching `specs/001-library-manager/contracts/openapi.yaml`
+- [X] T045 [US1] Persist BookCreated/BookUpdated/BookDeactivated `AuditEvent` in the same transaction in `src/LibraryManager.Application/Books/CreateBook/CreateBookUseCase.cs`, `UpdateBookUseCase.cs`, and `DeactivateBookUseCase.cs`
 
 **Checkpoint**: Catalog is independently testable with the integration test host
 
@@ -112,15 +112,15 @@ description: "Task list for Library Manager API implementation"
 
 ### Tests for User Story 2
 
-- [ ] T046 [P] [US2] Add Domain unit tests for User in `tests/LibraryManager.UnitTests/Domain/UserTests.cs`
-- [ ] T047 [P] [US2] Add failing integration tests for create User, duplicate email (HTTP 422), GET `/users/{id}/loans` empty first page, and unknown UserId (HTTP 404) in `tests/LibraryManager.IntegrationTests/Users/UserRegistrationTests.cs`
+- [X] T046 [P] [US2] Add Domain unit tests for User in `tests/LibraryManager.UnitTests/Domain/UserTests.cs`
+- [X] T047 [P] [US2] Add failing integration tests for create User, duplicate email (HTTP 422), GET `/users/{id}/loans` empty first page, and unknown UserId (HTTP 404) in `tests/LibraryManager.IntegrationTests/Users/UserRegistrationTests.cs`
 
 ### Implementation for User Story 2
 
-- [ ] T048 [P] [US2] Implement `CreateUserUseCase` in `src/LibraryManager.Application/Users/CreateUser/CreateUserUseCase.cs`
-- [ ] T049 [P] [US2] Implement `GetUserLoansUseCase` with `page` (default 1) and `pageSize` (default 20, maximum 100) in `src/LibraryManager.Application/Users/GetUserLoans/GetUserLoansUseCase.cs`
-- [ ] T050 [US2] Implement `UsersController` in `src/LibraryManager.Api/Controllers/UsersController.cs`
-- [ ] T051 [US2] Persist UserCreated `AuditEvent` in the same transaction in `src/LibraryManager.Application/Users/CreateUser/CreateUserUseCase.cs`
+- [X] T048 [P] [US2] Implement `CreateUserUseCase` in `src/LibraryManager.Application/Users/CreateUser/CreateUserUseCase.cs`
+- [X] T049 [P] [US2] Implement `GetUserLoansUseCase` with `page` (default 1) and `pageSize` (default 20, maximum 100) in `src/LibraryManager.Application/Users/GetUserLoans/GetUserLoansUseCase.cs`
+- [X] T050 [US2] Implement `UsersController` in `src/LibraryManager.Api/Controllers/UsersController.cs`
+- [X] T051 [US2] Persist UserCreated `AuditEvent` in the same transaction in `src/LibraryManager.Application/Users/CreateUser/CreateUserUseCase.cs`
 
 **Checkpoint**: Users can be registered independently of lending
 
