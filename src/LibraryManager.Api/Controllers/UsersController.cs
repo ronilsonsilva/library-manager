@@ -1,7 +1,9 @@
+using LibraryManager.Api.Contracts.Common;
+using LibraryManager.Api.Contracts.Loans.Responses;
+using LibraryManager.Api.Contracts.Users.Requests;
+using LibraryManager.Api.Contracts.Users.Responses;
 using LibraryManager.Api.Security;
 using LibraryManager.Application.Common;
-using LibraryManager.Application.Loans;
-using LibraryManager.Application.Users;
 using LibraryManager.Application.Users.CreateUser;
 using LibraryManager.Application.Users.GetUserLoans;
 using Microsoft.AspNetCore.Authorization;
@@ -17,25 +19,23 @@ public sealed class UsersController(
 {
     [HttpPost]
     [Authorize(Policy = LibrarianPolicy.Name)]
-    public async Task<ActionResult<UserDto>> Create(
+    public async Task<ActionResult<UserResponse>> Create(
         [FromBody] CreateUserRequest request,
         CancellationToken cancellationToken)
     {
         var user = await createUser.ExecuteAsync(request.Name, request.Email, cancellationToken);
-        return StatusCode(StatusCodes.Status201Created, user);
+        return StatusCode(StatusCodes.Status201Created, UserResponse.From(user));
     }
 
     [HttpGet("{id:guid}/loans")]
     [Authorize]
-    public async Task<ActionResult<PagedResult<LoanDto>>> GetLoans(
+    public async Task<ActionResult<PagedResponse<LoanResponse>>> GetLoans(
         Guid id,
         [FromQuery] int page = Pagination.DefaultPage,
         [FromQuery] int pageSize = Pagination.DefaultPageSize,
         CancellationToken cancellationToken = default)
     {
         var result = await getUserLoans.ExecuteAsync(id, page, pageSize, cancellationToken);
-        return Ok(result);
+        return Ok(PagedResponse<LoanResponse>.From(result, LoanResponse.From));
     }
 }
-
-public sealed record CreateUserRequest(string Name, string Email);

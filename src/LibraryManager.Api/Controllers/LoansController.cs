@@ -1,5 +1,6 @@
+using LibraryManager.Api.Contracts.Loans.Requests;
+using LibraryManager.Api.Contracts.Loans.Responses;
 using LibraryManager.Api.Security;
-using LibraryManager.Application.Loans;
 using LibraryManager.Application.Loans.CancelLoan;
 using LibraryManager.Application.Loans.CreateLoan;
 using LibraryManager.Application.Loans.ReturnLoan;
@@ -18,7 +19,7 @@ public sealed class LoansController(
 {
     [HttpPost]
     [Authorize(Policy = LibrarianPolicy.Name)]
-    public async Task<ActionResult<LoanDto>> Create(
+    public async Task<ActionResult<LoanResponse>> Create(
         [FromHeader(Name = "Idempotency-Key")] string? idempotencyKey,
         [FromBody] CreateLoanRequest request,
         CancellationToken cancellationToken)
@@ -35,24 +36,22 @@ public sealed class LoansController(
         }
 
         var loan = await createLoan.ExecuteAsync(request.BookId, request.UserId, key, cancellationToken);
-        return StatusCode(StatusCodes.Status201Created, loan);
+        return StatusCode(StatusCodes.Status201Created, LoanResponse.From(loan));
     }
 
     [HttpPost("{id:guid}/return")]
     [Authorize(Policy = LibrarianPolicy.Name)]
-    public async Task<ActionResult<LoanDto>> Return(Guid id, CancellationToken cancellationToken)
+    public async Task<ActionResult<LoanResponse>> Return(Guid id, CancellationToken cancellationToken)
     {
         var loan = await returnLoan.ExecuteAsync(id, cancellationToken);
-        return Ok(loan);
+        return Ok(LoanResponse.From(loan));
     }
 
     [HttpPost("{id:guid}/cancel")]
     [Authorize(Policy = LibrarianPolicy.Name)]
-    public async Task<ActionResult<LoanDto>> Cancel(Guid id, CancellationToken cancellationToken)
+    public async Task<ActionResult<LoanResponse>> Cancel(Guid id, CancellationToken cancellationToken)
     {
         var loan = await cancelLoan.ExecuteAsync(id, cancellationToken);
-        return Ok(loan);
+        return Ok(LoanResponse.From(loan));
     }
 }
-
-public sealed record CreateLoanRequest(Guid BookId, Guid UserId);

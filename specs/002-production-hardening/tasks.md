@@ -88,26 +88,26 @@ description: "Task list for production-hardening implementation"
 
 ### Tests for User Story 2
 
-- [ ] T022 [P] [US2] Add failing architecture tests that `src/LibraryManager.Api/Controllers/*.cs` declare no `public sealed record` transport types and that list/history/audit actions do not return Application `PagedResult<T>` or Application DTOs as HTTP contracts in `tests/LibraryManager.IntegrationTests/Architecture/ControllerContractLocationTests.cs`
+- [X] T022 [P] [US2] Add failing architecture tests that `src/LibraryManager.Api/Controllers/*.cs` declare no `public sealed record` transport types and that list/history/audit actions do not return Application `PagedResult<T>` or Application DTOs as HTTP contracts in `tests/LibraryManager.IntegrationTests/Architecture/ControllerContractLocationTests.cs`
 - [ ] T023 [P] [US2] Add failing Idempotency-Key tests (missing, empty, whitespace, 129, 128, trim, no loan side effect) in `tests/LibraryManager.IntegrationTests/Loans/IdempotencyKeyBindingTests.cs`
 - [ ] T024 [P] [US2] Add failing body-validation tests (required title/ISBN, TotalCopies range) expecting HTTP 400 ValidationProblemDetails in `tests/LibraryManager.IntegrationTests/Books/BookBodyValidationTests.cs`
 - [ ] T025 [P] [US2] Add failing binder unit tests (missing/empty/max length/trim, no throw, no swallow of `OperationCanceledException`) in `tests/LibraryManager.UnitTests/Api/IdempotencyKeyModelBinderTests.cs`
 
 ### Implementation for User Story 2
 
-- [ ] T026 [P] [US2] Implement readonly `IdempotencyKey` with normalized `Value` in `src/LibraryManager.Api/Contracts/Common/IdempotencyKey.cs`
+- [X] T026 [P] [US2] Implement readonly `IdempotencyKey` with normalized `Value` in `src/LibraryManager.Api/Contracts/Common/IdempotencyKey.cs`
 - [ ] T027 [P] [US2] Implement `IModelBinder` (header `Idempotency-Key`, localized ModelState keys, no expected throws) in `src/LibraryManager.Api/ModelBinding/IdempotencyKey/IdempotencyKeyModelBinder.cs`
 - [ ] T028 [P] [US2] Implement `FromIdempotencyKeyAttribute` in `src/LibraryManager.Api/ModelBinding/IdempotencyKey/FromIdempotencyKeyAttribute.cs`
-- [ ] T029 [P] [US2] Add `CreateBookRequest` and `UpdateBookRequest` with DataAnnotations in `src/LibraryManager.Api/Contracts/Books/Requests/CreateBookRequest.cs` and `UpdateBookRequest.cs`
-- [ ] T030 [P] [US2] Add `CreateUserRequest` with DataAnnotations in `src/LibraryManager.Api/Contracts/Users/Requests/CreateUserRequest.cs`
-- [ ] T031 [P] [US2] Add `CreateLoanRequest` with DataAnnotations in `src/LibraryManager.Api/Contracts/Loans/Requests/CreateLoanRequest.cs`
-- [ ] T032 [P] [US2] Add `PagedResponse<T>` (`Items`, `Page`, `PageSize`, `TotalCount` → JSON `items`, `page`, `pageSize`, `totalCount`) in `src/LibraryManager.Api/Contracts/Common/PagedResponse.cs`; add `BookResponse` and `BookAvailabilityResponse` (map from Application DTOs; same JSON as today) in `src/LibraryManager.Api/Contracts/Books/Responses/BookResponse.cs` and `BookAvailabilityResponse.cs`
-- [ ] T033 [P] [US2] Add `UserResponse`, `LoanResponse`, and `AuditEventResponse` in `src/LibraryManager.Api/Contracts/Users/Responses/UserResponse.cs`, `Contracts/Loans/Responses/LoanResponse.cs`, and `Contracts/Audit/Responses/AuditEventResponse.cs`
+- [X] T029 [P] [US2] Add `CreateBookRequest` and `UpdateBookRequest` with DataAnnotations in `src/LibraryManager.Api/Contracts/Books/Requests/CreateBookRequest.cs` and `UpdateBookRequest.cs`
+- [X] T030 [P] [US2] Add `CreateUserRequest` with DataAnnotations in `src/LibraryManager.Api/Contracts/Users/Requests/CreateUserRequest.cs`
+- [X] T031 [P] [US2] Add `CreateLoanRequest` with DataAnnotations in `src/LibraryManager.Api/Contracts/Loans/Requests/CreateLoanRequest.cs`
+- [X] T032 [P] [US2] Add `PagedResponse<T>` (`Items`, `Page`, `PageSize`, `TotalCount` → JSON `items`, `page`, `pageSize`, `totalCount`) in `src/LibraryManager.Api/Contracts/Common/PagedResponse.cs`; add `BookResponse` and `BookAvailabilityResponse` (map from Application DTOs; same JSON as today) in `src/LibraryManager.Api/Contracts/Books/Responses/BookResponse.cs` and `BookAvailabilityResponse.cs`
+- [X] T033 [P] [US2] Add `UserResponse`, `LoanResponse`, and `AuditEventResponse` in `src/LibraryManager.Api/Contracts/Users/Responses/UserResponse.cs`, `Contracts/Loans/Responses/LoanResponse.cs`, and `Contracts/Audit/Responses/AuditEventResponse.cs`
 - [ ] T034 [US2] Configure `[ApiController]` `InvalidModelStateResponseFactory` for localized `Problem_Validation_Title` plus `correlationId` in `src/LibraryManager.Api/Localization/LocalizationConfiguration.cs`
-- [ ] T035 [US2] Update `src/LibraryManager.Api/Controllers/BooksController.cs` to use Contracts only (no local records, no ModelState inspection); `List` returns `PagedResponse<BookResponse>`; `GetLoanHistory` returns `PagedResponse<LoanResponse>` (map from Application `PagedResult<TDto>`)
-- [ ] T036 [US2] Update `src/LibraryManager.Api/Controllers/UsersController.cs` to use Contracts only; `GetLoans` returns `PagedResponse<LoanResponse>`
+- [X] T035 [US2] Update `src/LibraryManager.Api/Controllers/BooksController.cs` to use Contracts only (no local records, no ModelState inspection); `List` returns `PagedResponse<BookResponse>`; `GetLoanHistory` returns `PagedResponse<LoanResponse>` (map from Application `PagedResult<TDto>`)
+- [X] T036 [US2] Update `src/LibraryManager.Api/Controllers/UsersController.cs` to use Contracts only; `GetLoans` returns `PagedResponse<LoanResponse>`
 - [ ] T037 [US2] Update `Create` in `src/LibraryManager.Api/Controllers/LoansController.cs` to `[FromIdempotencyKey] IdempotencyKey idempotencyKey`, pass `idempotencyKey.Value`, no `Required`/`StringLength` on the parameter, no manual key checks
-- [ ] T038 [US2] Update `src/LibraryManager.Api/Controllers/AuditEventsController.cs` to return `PagedResponse<AuditEventResponse>` (map from Application `PagedResult<AuditEventDto>`)
+- [X] T038 [US2] Update `src/LibraryManager.Api/Controllers/AuditEventsController.cs` to return `PagedResponse<AuditEventResponse>` (map from Application `PagedResult<AuditEventDto>`)
 - [ ] T039 [US2] Align existing missing-key assertions with ValidationProblemDetails in `tests/LibraryManager.IntegrationTests/Loans/CreateLoanTests.cs` and `tests/LibraryManager.IntegrationTests/Loans/IdempotencyTests.cs`
 
 **Checkpoint**: HTTP transport validation is independently testable

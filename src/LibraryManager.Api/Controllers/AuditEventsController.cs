@@ -1,5 +1,6 @@
+using LibraryManager.Api.Contracts.Audit.Responses;
+using LibraryManager.Api.Contracts.Common;
 using LibraryManager.Api.Security;
-using LibraryManager.Application.Audit;
 using LibraryManager.Application.Audit.GetAuditEvents;
 using LibraryManager.Application.Common;
 using Microsoft.AspNetCore.Authorization;
@@ -13,7 +14,7 @@ public sealed class AuditEventsController(GetAuditEventsUseCase getAuditEvents) 
 {
     [HttpGet]
     [Authorize(Policy = LibrarianPolicy.Name)]
-    public async Task<ActionResult<PagedResult<AuditEventDto>>> List(
+    public async Task<ActionResult<PagedResponse<AuditEventResponse>>> List(
         [FromQuery] int page = Pagination.DefaultPage,
         [FromQuery] int pageSize = Pagination.DefaultPageSize,
         [FromQuery] string? entityType = null,
@@ -26,6 +27,6 @@ public sealed class AuditEventsController(GetAuditEventsUseCase getAuditEvents) 
             entityType,
             entityId,
             cancellationToken);
-        return Ok(result);
+        return Ok(PagedResponse<AuditEventResponse>.From(result, AuditEventResponse.From));
     }
 }
