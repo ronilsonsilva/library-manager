@@ -74,7 +74,7 @@ description: "Task list for production-hardening implementation"
 - [ ] T018 [US1] Remove `OpenTelemetry.Instrumentation.StackExchangeRedis` and `AddRedisInstrumentation` from `src/LibraryManager.Api/LibraryManager.Api.csproj` and `src/LibraryManager.Api/Telemetry/OpenTelemetryConfiguration.cs`
 - [ ] T019 [US1] Start `LibraryManager` `ActivitySource` activities named `availability_cache.get`, `availability_cache.set`, and `availability_cache.remove` for cache Get/Set/Remove in `src/LibraryManager.Infrastructure/Caching/RedisAvailabilityCache.cs` (make T016 activity tests pass)
 - [ ] T020 [US1] Upgrade compatible OpenTelemetry stable packages if required in `src/LibraryManager.Api/LibraryManager.Api.csproj`
-- [ ] T021 [US1] Remediate remaining high/critical findings by upgrading direct parent packages listed by `dotnet nuget why` (edit the owning `*.csproj` under `src/`; no `NoWarn` for NU1903/NU1904)
+- [ ] T021 [US1] Remediate remaining high/critical findings by upgrading direct parent packages listed by `dotnet nuget why` (edit the owning `*.csproj` under `src/` or `tests/`; no `NoWarn` for NU1903/NU1904)
 
 **Checkpoint**: Dependency audit policy is independently verifiable
 

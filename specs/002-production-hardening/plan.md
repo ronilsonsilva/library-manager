@@ -74,7 +74,7 @@ specs/002-production-hardening/
 ├── checklists/
 │   ├── requirements.md
 │   └── hardening.md
-└── tasks.md             # Phase 2 (/speckit-tasks) — not created here
+└── tasks.md
 ```
 
 ### Source Code (repository root)

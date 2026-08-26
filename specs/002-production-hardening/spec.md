@@ -157,7 +157,7 @@ Local Keycloak Direct Access Grants stay disabled. Resource Owner Password Crede
 **Acceptance Scenarios**:
 
 1. **Given** the source-controlled local Keycloak realm, **When** Direct Access Grants are inspected, **Then** they are disabled.
-2. **Given** local documentation and smoke tests, **When** a reviewer searches for Resource Owner Password Credentials usage, **Then** none remain.
+2. **Given** `README.md`, `specs/001-library-manager/quickstart.md`, and automated tests, **When** a reviewer searches for Keycloak Resource Owner Password Credentials (`grant_type=password` to the realm token endpoint), **Then** none remain (API-path 404 probes that prove this API issues no tokens are allowed).
 3. **Given** local Swagger UI, **When** a staff caller authenticates, **Then** they use Authorization Code with PKCE only.
 
 ---
@@ -194,7 +194,7 @@ Catalog, User, loan, last-copy concurrency, durable idempotency, audit, Outbox, 
 - Cancellation tokens always propagate, including through cache-resilience code. `OperationCanceledException` is never swallowed.
 - Successful `DeactivateBook` must not leave a previously cached active availability value observable as current.
 - `ExecuteSqlInterpolatedAsync` is accepted as parameterized SQL. Existing parameterized interpolated SQL is not churned. Runtime string concatenation into SQL is forbidden.
-- Password-grant token examples are out of bounds even as “local smoke only” shortcuts. Direct Access Grants stay disabled.
+- Password-grant as a documented login or smoke path is out of bounds. README, `specs/001-library-manager/quickstart.md`, and automated tests MUST NOT call the Keycloak token endpoint with `grant_type=password` (API-path 404 probes remain allowed). A labeled operator-only negative Compose check in this feature's `quickstart.md` is not an authentication example. Direct Access Grants stay disabled.
 - Core lending rules, last-copy correctness, durable idempotency ownership, JWT behavior, and audit/Outbox transaction pairing are unchanged unless this feature explicitly changes transport validation behavior.
 
 ## Requirements *(mandatory)*
@@ -248,7 +248,7 @@ Catalog, User, loan, last-copy concurrency, durable idempotency, audit, Outbox, 
 - **FR-045**: `ExecuteSqlInterpolatedAsync` is accepted as parameterized SQL. `ExecuteSqlInterpolated`, interpolated `FromSql`, and equivalent parameterized EF Core APIs are permitted. `ExecuteSqlRaw` and `FromSqlRaw` MAY receive runtime values only through explicit database parameters.
 - **FR-046**: Existing safe `ExecuteSqlInterpolated` calls MUST NOT be rewritten merely because interpolation syntax is present. Unsafe raw SQL interpolation or concatenation MUST be replaced with parameterized APIs.
 - **FR-047**: Local Keycloak Direct Access Grants MUST remain disabled.
-- **FR-048**: Resource Owner Password Credentials flow MUST NOT be used for library-manager local authentication examples or smoke tests.
+- **FR-048**: Resource Owner Password Credentials flow MUST NOT be used for library-manager local authentication examples or smoke tests in `README.md`, `specs/001-library-manager/quickstart.md`, or automated tests. Tests that POST password grant to **this API** to prove it has no token endpoint remain allowed. A clearly labeled operator-only negative Compose check in `specs/002-production-hardening/quickstart.md` is not an authentication example and MUST NOT be copied into README or 001 docs.
 - **FR-049**: Swagger authentication MUST continue to use Authorization Code with PKCE exclusively.
 - **FR-050**: Existing concurrency, idempotency, Outbox, JWT, and HTTP status behavior MUST remain functionally compatible with `001-library-manager` unless this feature explicitly changes transport validation behavior.
 - **FR-051**: Automated tests MUST be updated as required and MUST add coverage for every new hardening requirement in this specification.
@@ -275,7 +275,7 @@ Catalog, User, loan, last-copy concurrency, durable idempotency, audit, Outbox, 
 - **SC-007**: 100% of GET /books/{id}/availability requests return catalog-correct data when the fast cache is unavailable, and 100% of otherwise valid catalog-backed availability reads succeed when cache writes fail.
 - **SC-008**: After 100% of successful book deactivations, a previously cached active availability value is not observable as the current availability view.
 - **SC-009**: 100% of SQL commands that include runtime values pass those values as parameters, with no concatenated user-controlled SQL.
-- **SC-010**: 100% of clients in the source-controlled local Keycloak realm have Direct Access Grants disabled; 0% of repository documentation and automated tests use Resource Owner Password Credentials against Keycloak; Swagger authentication remains Authorization Code with PKCE. (That realm configuration is what causes Keycloak to reject password-grant token requests when imported.)
+- **SC-010**: 100% of clients in the source-controlled local Keycloak realm have Direct Access Grants disabled; 0% of `README.md`, `specs/001-library-manager/quickstart.md`, and automated tests use Resource Owner Password Credentials against Keycloak (API-path 404 probes remain allowed); Swagger authentication remains Authorization Code with PKCE. `specs/002-production-hardening/quickstart.md` MAY include a labeled operator-only negative password-grant check against Compose Keycloak. (Disabled Direct Access Grants in the imported realm JSON is what causes Keycloak to reject password-grant token requests.)
 - **SC-011**: 100% of existing concurrency, idempotency, Outbox, JWT, HTTP status, authentication, observability, and health automated tests remain passing after required updates except where this feature explicitly changes transport validation behavior, and every new hardening requirement in this specification has automated coverage.
 
 ## Assumptions
@@ -307,7 +307,7 @@ Stakeholder-mandated platform mapping (planning MUST honor these names and contr
 - Deactivation follow-up: `DeactivateBook` writes `BookAvailabilityChanged` in the same PostgreSQL transaction as mutation and `AuditEvent`, then invalidates cache after commit
 - SQL: `ExecuteSqlInterpolatedAsync` accepted as parameterized; unsafe raw concatenation forbidden; raw APIs use explicit parameters for runtime values
 - Package audit: repository-wide NuGet audit of direct and transitive packages; NU1903 and NU1904 fail the build; auditing not globally disabled; compatible OpenTelemetry stable packages upgraded where appropriate
-- Identity: Direct Access Grants disabled; no ROPC examples or smoke tests; Swagger Authorization Code with PKCE
+- Identity: Direct Access Grants disabled; no ROPC login examples or smoke tests in README, 001 quickstart, or tests; Swagger Authorization Code with PKCE; optional 002 operator-only negative curl is not an auth example
 
 ## Out of Scope
 
