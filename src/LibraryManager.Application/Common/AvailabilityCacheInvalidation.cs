@@ -8,6 +8,7 @@ internal static class AvailabilityCacheInvalidation
     public static async Task TryRemoveAsync(
         IAvailabilityCache cache,
         ILogger logger,
+        ILibraryManagerMetrics metrics,
         Guid bookId,
         CancellationToken cancellationToken)
     {
@@ -17,6 +18,7 @@ internal static class AvailabilityCacheInvalidation
         }
         catch (Exception exception) when (exception is not OperationCanceledException)
         {
+            metrics.RecordCacheInvalidationFailure();
             logger.LogWarning(
                 exception,
                 "Failed to invalidate availability cache for book {BookId}",

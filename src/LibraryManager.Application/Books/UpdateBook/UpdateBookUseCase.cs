@@ -15,7 +15,8 @@ public sealed class UpdateBookUseCase(
     IClock clock,
     ICurrentUserContext currentUser,
     ICorrelationContext correlation,
-    ILogger<UpdateBookUseCase> logger)
+    ILogger<UpdateBookUseCase> logger,
+    ILibraryManagerMetrics metrics)
 {
     public async Task<BookDto> ExecuteAsync(
         Guid id,
@@ -75,7 +76,7 @@ public sealed class UpdateBookUseCase(
 
         if (availabilityChanged)
         {
-            await AvailabilityCacheInvalidation.TryRemoveAsync(cache, logger, book.Id, cancellationToken);
+            await AvailabilityCacheInvalidation.TryRemoveAsync(cache, logger, metrics, book.Id, cancellationToken);
         }
 
         return BookDto.From(book);

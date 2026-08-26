@@ -67,7 +67,7 @@ description: "Task list for Library Manager API implementation"
 - [X] T029 Configure JwtBearer (`Authentication:Authority`, `Authentication:Audience`, issuer/audience/signature/lifetime, `MapInboundClaims = false`, `RoleClaimType = roles`) and Librarian policy in `src/LibraryManager.Api/Program.cs` and `src/LibraryManager.Api/Security/LibrarianPolicy.cs`
 - [X] T030 Add `CorrelationIdMiddleware` for `X-Correlation-ID` in `src/LibraryManager.Api/Middleware/CorrelationIdMiddleware.cs`
 - [X] T031 Configure RFC Problem Details and `src/LibraryManager.Api/appsettings.json` plus `appsettings.Development.json`
-- [ ] T032 Map anonymous `GET /health/live` (process-only, 200 if the process is up) and `GET /health/ready` (Postgres + Redis, HTTP 503 when a dependency is down) in `src/LibraryManager.Api/Health/HealthEndpoints.cs` and `Program.cs`
+- [X] T032 Map anonymous `GET /health/live` (process-only, 200 if the process is up) and `GET /health/ready` (Postgres + Redis, HTTP 503 when a dependency is down) in `src/LibraryManager.Api/Health/HealthEndpoints.cs` and `Program.cs`
 - [X] T033 Register composition in `src/LibraryManager.Infrastructure/DependencyInjection.cs` and `src/LibraryManager.Api/Program.cs`
 - [X] T034 Add `CustomWebApplicationFactory` with Testcontainers PostgreSQL and Redis in `tests/LibraryManager.IntegrationTests/Infrastructure/CustomWebApplicationFactory.cs`. The factory MUST support two (or more) host instances that share one PostgreSQL connection string and one Redis connection string; apply EF migrations once; do not start a second database container per host.
 - [X] T035 Add test-only authentication scheme gated by `Testing:UseTestAuth` in `tests/LibraryManager.IntegrationTests/Infrastructure/TestAuthHandler.cs`
@@ -144,7 +144,7 @@ description: "Task list for Library Manager API implementation"
 - [X] T056 [US3] After commit, `await` Redis invalidation without failing the HTTP result in `src/LibraryManager.Application/Loans/CreateLoan/CreateLoanUseCase.cs`
 - [X] T057 [US3] Implement `LoansController` POST `/loans` with required `Idempotency-Key` in `src/LibraryManager.Api/Controllers/LoansController.cs`
 - [X] T058 [US3] Implement `GetBookLoanHistoryUseCase` and GET `/books/{id}/loans` with `page` (default 1) and `pageSize` (default 20, maximum 100) in `src/LibraryManager.Application/Loans/GetBookLoanHistory/GetBookLoanHistoryUseCase.cs` and `BooksController`
-- [ ] T059 [US3] Record `library_manager_loans_created`, `library_manager_loans_unavailable`, and `library_manager_loan_duration` in `src/LibraryManager.Api/Telemetry/LibraryManagerMetrics.cs` from the create-loan path
+- [X] T059 [US3] Record `library_manager_loans_created`, `library_manager_loans_unavailable`, and `library_manager_loan_duration` in `src/LibraryManager.Api/Telemetry/LibraryManagerMetrics.cs` from the create-loan path
 - [X] T060 [US3] Reject inactive book, zero copies, and duplicate Active (UserId, BookId) with HTTP 422 Problem Details; reject unknown UserId or BookId with HTTP 404 in `src/LibraryManager.Application/Loans/CreateLoan/CreateLoanUseCase.cs`
 
 **Checkpoint**: Lending is correct for sequential and last-copy concurrent cases, including two hosts sharing PostgreSQL. Full idempotency (201 replay, 409 mismatch, hash, rollback) is US4.
@@ -167,7 +167,7 @@ description: "Task list for Library Manager API implementation"
 - [X] T063 [US4] Canonicalize `{bookId,userId}` and compute SHA-256 in `src/LibraryManager.Infrastructure/Idempotency/LoanRequestCanonicalizer.cs`
 - [X] T064 [US4] Wire HTTP 201 replay vs HTTP 409 vs reserve in `src/LibraryManager.Infrastructure/Idempotency/IdempotencyStore.cs` and `src/LibraryManager.Application/Loans/CreateLoan/CreateLoanUseCase.cs`
 - [X] T065 [US4] Ensure unexpected exceptions roll back idempotency ownership with the ambient EF transaction in `src/LibraryManager.Application/Loans/CreateLoan/CreateLoanUseCase.cs` (T061 rollback tests must pass)
-- [ ] T066 [US4] Increment `library_manager_idempotency_replays` in `src/LibraryManager.Api/Telemetry/LibraryManagerMetrics.cs`
+- [X] T066 [US4] Increment `library_manager_idempotency_replays` in `src/LibraryManager.Api/Telemetry/LibraryManagerMetrics.cs`
 
 **Checkpoint**: Idempotency guarantees are independently proven
 
@@ -252,7 +252,7 @@ description: "Task list for Library Manager API implementation"
 - [X] T084 [US8] Implement `GetBookAvailabilityUseCase` cache-aside in `src/LibraryManager.Application/Books/GetBookAvailability/GetBookAvailabilityUseCase.cs`
 - [X] T085 [US8] Add GET `/books/{id}/availability` in `src/LibraryManager.Api/Controllers/BooksController.cs`
 - [X] T086 [US8] Ensure Create/Return/Cancel never call cache get for approval in `src/LibraryManager.Application/Loans/CreateLoan/CreateLoanUseCase.cs`, `ReturnLoanUseCase.cs`, and `CancelLoanUseCase.cs`; only `await` invalidate after commit
-- [ ] T087 [US8] Increment `library_manager_cache_invalidation_failures` on invalidate errors in `src/LibraryManager.Api/Telemetry/LibraryManagerMetrics.cs`
+- [X] T087 [US8] Increment `library_manager_cache_invalidation_failures` on invalidate errors in `src/LibraryManager.Api/Telemetry/LibraryManagerMetrics.cs`
 
 **Checkpoint**: Cache is a hint only
 
@@ -274,7 +274,7 @@ description: "Task list for Library Manager API implementation"
 - [X] T090 [US9] Implement `OutboxProcessor` as `BackgroundService` in `src/LibraryManager.Infrastructure/Outbox/OutboxProcessor.cs` (commit claim, then Redis, then ProcessedAtUtc or backoff)
 - [X] T091 [US9] Register hosted `OutboxProcessor` in `src/LibraryManager.Infrastructure/DependencyInjection.cs`
 - [X] T092 [US9] Make cache invalidation consumer idempotent in `src/LibraryManager.Infrastructure/Caching/RedisAvailabilityCache.cs`
-- [ ] T093 [US9] Record `library_manager_outbox_processed`, `library_manager_outbox_failures`, `library_manager_outbox_pending` in `src/LibraryManager.Api/Telemetry/LibraryManagerMetrics.cs`
+- [X] T093 [US9] Record `library_manager_outbox_processed`, `library_manager_outbox_failures`, `library_manager_outbox_pending` in `src/LibraryManager.Api/Telemetry/LibraryManagerMetrics.cs`
 
 **Checkpoint**: Outbox is multi-replica safe and recoverable
 
@@ -288,12 +288,12 @@ description: "Task list for Library Manager API implementation"
 
 ### Tests for User Story 10
 
-- [ ] T094 [P] [US10] Add failing anonymous live/ready tests in `tests/LibraryManager.IntegrationTests/Health/HealthEndpointTests.cs`: live returns HTTP 200 without a token; ready returns HTTP 200 when Postgres and Redis are up; live still returns HTTP 200 when ready returns HTTP 503 (dependency down)
+- [X] T094 [P] [US10] Add failing anonymous live/ready tests in `tests/LibraryManager.IntegrationTests/Health/HealthEndpointTests.cs`: live returns HTTP 200 without a token; ready returns HTTP 200 when Postgres and Redis are up; live still returns HTTP 200 when ready returns HTTP 503 (dependency down)
 
 ### Implementation for User Story 10
 
-- [ ] T095 [US10] Configure OpenTelemetry (`ActivitySource` `LibraryManager`, OTLP optional) in `src/LibraryManager.Api/Telemetry/OpenTelemetryConfiguration.cs` and `Program.cs`
-- [ ] T096 [US10] Add structured logging scopes with correlation id in `src/LibraryManager.Api/Middleware/CorrelationIdMiddleware.cs`
+- [X] T095 [US10] Configure OpenTelemetry (`ActivitySource` `LibraryManager`, OTLP optional) in `src/LibraryManager.Api/Telemetry/OpenTelemetryConfiguration.cs` and `Program.cs`
+- [X] T096 [US10] Add structured logging scopes with correlation id in `src/LibraryManager.Api/Middleware/CorrelationIdMiddleware.cs`
 - [ ] T097 [US10] Create `Dockerfile` using `mcr.microsoft.com/dotnet/sdk:10.0` and `aspnet:10.0`
 - [ ] T098 [US10] Create `docker-compose.yml` services `library-manager-api`, `postgres`, `redis`, `keycloak` (`quay.io/keycloak/keycloak:26.7.2`, `start-dev --import-realm`)
 - [ ] T099 [US10] Add `deploy/kubernetes/deployment.yaml` with CPU/memory requests and limits, liveness `/health/live`, readiness `/health/ready`

@@ -1,6 +1,8 @@
+using System.Diagnostics;
 using LibraryManager.Application.Abstractions;
 using LibraryManager.Application.Common;
 using LibraryManager.Application.Loans;
+using LibraryManager.Application.Telemetry;
 using LibraryManager.Domain;
 using Microsoft.Extensions.Logging;
 
@@ -18,6 +20,7 @@ public sealed class CreateLoanUseCase(
     IClock clock,
     ICurrentUserContext currentUser,
     ICorrelationContext correlation,
+    ILibraryManagerMetrics metrics,
     ILogger<CreateLoanUseCase> logger)
 {
     public const string IdempotencyEndpoint = "POST /loans";
@@ -31,7 +34,15 @@ public sealed class CreateLoanUseCase(
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        var outcome = await unitOfWork.ExecuteInTransactionAsync(
+        using var activity = LibraryManagerInstrumentation.ActivitySource.StartActivity("CreateLoan");
+        activity?.SetTag("book.id", bookId.ToString());
+        activity?.SetTag("user.id", userId.ToString());
+        activity?.SetTag("correlation.id", correlation.CorrelationId);
+
+        var started = Stopwatch.StartNew();
+        try
+        {
+            var outcome = await unitOfWork.ExecuteInTransactionAsync(
             async ct =>
             {
                 var requestHash = LoanRequestCanonicalizer.ComputeHash(bookId, userId);
@@ -101,12 +112,29 @@ public sealed class CreateLoanUseCase(
             },
             cancellationToken);
 
-        if (outcome.Created)
-        {
-            await AvailabilityCacheInvalidation.TryRemoveAsync(cache, logger, bookId, cancellationToken);
-        }
+            if (outcome.Created)
+            {
+                metrics.RecordLoanCreated();
+                await AvailabilityCacheInvalidation.TryRemoveAsync(
+                    cache,
+                    logger,
+                    metrics,
+                    bookId,
+                    cancellationToken);
+            }
+            else
+            {
+                metrics.RecordIdempotencyReplay();
+            }
 
-        return outcome.Loan;
+            metrics.RecordLoanDuration(started.Elapsed);
+            return outcome.Loan;
+        }
+        catch (BusinessRuleException exception) when (exception.Message == "No copies are available.")
+        {
+            metrics.RecordLoanUnavailable();
+            throw;
+        }
     }
 
     private static CreateLoanOutcome ReplayOrConflict(IdempotencyLookup reservation, string requestHash)

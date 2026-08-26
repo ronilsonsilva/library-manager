@@ -18,6 +18,7 @@ internal static class CompleteActiveLoan
         ICurrentUserContext currentUser,
         ICorrelationContext correlation,
         ILogger logger,
+        ILibraryManagerMetrics metrics,
         Guid loanId,
         LoanStatus terminalStatus,
         string auditAction,
@@ -73,7 +74,12 @@ internal static class CompleteActiveLoan
             },
             cancellationToken);
 
-        await AvailabilityCacheInvalidation.TryRemoveAsync(cache, logger, completed.BookId, cancellationToken);
+        await AvailabilityCacheInvalidation.TryRemoveAsync(
+            cache,
+            logger,
+            metrics,
+            completed.BookId,
+            cancellationToken);
         return completed;
     }
 }

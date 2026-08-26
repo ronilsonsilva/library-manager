@@ -14,7 +14,8 @@ public sealed class DeactivateBookUseCase(
     IClock clock,
     ICurrentUserContext currentUser,
     ICorrelationContext correlation,
-    ILogger<DeactivateBookUseCase> logger)
+    ILogger<DeactivateBookUseCase> logger,
+    ILibraryManagerMetrics metrics)
 {
     public async Task ExecuteAsync(Guid id, CancellationToken cancellationToken)
     {
@@ -46,6 +47,6 @@ public sealed class DeactivateBookUseCase(
             cancellationToken);
 
         await unitOfWork.SaveChangesAsync(cancellationToken);
-        await AvailabilityCacheInvalidation.TryRemoveAsync(cache, logger, book.Id, cancellationToken);
+        await AvailabilityCacheInvalidation.TryRemoveAsync(cache, logger, metrics, book.Id, cancellationToken);
     }
 }

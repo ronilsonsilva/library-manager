@@ -16,7 +16,8 @@ public sealed class ReturnLoanUseCase(
     IClock clock,
     ICurrentUserContext currentUser,
     ICorrelationContext correlation,
-    ILogger<ReturnLoanUseCase> logger)
+    ILogger<ReturnLoanUseCase> logger,
+    ILibraryManagerMetrics metrics)
 {
     public Task<LoanDto> ExecuteAsync(Guid loanId, CancellationToken cancellationToken) =>
         CompleteActiveLoan.ExecuteAsync(
@@ -30,6 +31,7 @@ public sealed class ReturnLoanUseCase(
             currentUser,
             correlation,
             logger,
+            metrics,
             loanId,
             LoanStatus.Returned,
             AuditMetadata.LoanReturned,

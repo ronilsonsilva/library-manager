@@ -28,6 +28,7 @@ public sealed class OutboxProcessor : BackgroundService
     private readonly IAvailabilityCache _cache;
     private readonly IClock _clock;
     private readonly ILogger<OutboxProcessor> _logger;
+    private readonly ILibraryManagerMetrics _metrics;
     private readonly string _workerId;
     private readonly int _batchSize;
     private readonly int _leaseSeconds;
@@ -39,12 +40,14 @@ public sealed class OutboxProcessor : BackgroundService
         IAvailabilityCache cache,
         IClock clock,
         IConfiguration configuration,
-        ILogger<OutboxProcessor> logger)
+        ILogger<OutboxProcessor> logger,
+        ILibraryManagerMetrics metrics)
     {
         _scopes = scopes;
         _cache = cache;
         _clock = clock;
         _logger = logger;
+        _metrics = metrics;
         _workerId = $"{Environment.MachineName}:{Guid.NewGuid():N}";
         if (_workerId.Length > 128)
         {
@@ -112,6 +115,7 @@ public sealed class OutboxProcessor : BackgroundService
             {
                 await ConsumeAsync(message, cancellationToken);
                 await MarkProcessedAsync(message.Id, cancellationToken);
+                _metrics.RecordOutboxProcessed();
             }
             catch (Exception exception) when (exception is not OperationCanceledException)
             {
@@ -120,9 +124,11 @@ public sealed class OutboxProcessor : BackgroundService
                     "Outbox message {MessageId} failed; scheduling retry",
                     message.Id);
                 await MarkFailedAsync(message, exception, cancellationToken);
+                _metrics.RecordOutboxFailure();
             }
         }
 
+        await RefreshPendingAsync(cancellationToken);
         return claimed.Count;
     }
 
@@ -174,6 +180,16 @@ public sealed class OutboxProcessor : BackgroundService
                     .SetProperty(item => item.LockedBy, (string?)null)
                     .SetProperty(item => item.LockedUntilUtc, (DateTime?)null),
                 cancellationToken);
+    }
+
+    private async Task RefreshPendingAsync(CancellationToken cancellationToken)
+    {
+        await using var scope = _scopes.CreateAsyncScope();
+        var db = scope.ServiceProvider.GetRequiredService<LibraryDbContext>();
+        var pending = await db.OutboxMessages.CountAsync(
+            message => message.ProcessedAtUtc == null,
+            cancellationToken);
+        _metrics.SetOutboxPending(pending);
     }
 
     private static int ParseBounded(string? value, int fallback, int min, int max) =>

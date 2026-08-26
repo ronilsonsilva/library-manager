@@ -84,6 +84,7 @@ public sealed class CreateLoanIdempotencyRollbackTests
             new FixedClock(),
             new FakeCurrentUser(),
             new FakeCorrelation(),
+            new NoopMetrics(),
             new NoopLogger());
     }
 
@@ -332,6 +333,41 @@ public sealed class CreateLoanIdempotencyRollbackTests
     private sealed class FakeCorrelation : ICorrelationContext
     {
         public string CorrelationId => "correlation";
+    }
+
+    private sealed class NoopMetrics : ILibraryManagerMetrics
+    {
+        public void RecordLoanCreated()
+        {
+        }
+
+        public void RecordLoanUnavailable()
+        {
+        }
+
+        public void RecordIdempotencyReplay()
+        {
+        }
+
+        public void RecordLoanDuration(TimeSpan duration)
+        {
+        }
+
+        public void RecordCacheInvalidationFailure()
+        {
+        }
+
+        public void RecordOutboxProcessed(int count = 1)
+        {
+        }
+
+        public void RecordOutboxFailure()
+        {
+        }
+
+        public void SetOutboxPending(long pending)
+        {
+        }
     }
 
     private sealed class NoopLogger : ILogger<CreateLoanUseCase>
