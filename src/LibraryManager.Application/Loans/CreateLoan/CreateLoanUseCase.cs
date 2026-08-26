@@ -21,6 +21,7 @@ public sealed class CreateLoanUseCase(
     ILogger<CreateLoanUseCase> logger)
 {
     public const string IdempotencyEndpoint = "POST /loans";
+    public const int CreatedStatus = 201;
 
     public async Task<LoanDto> ExecuteAsync(
         Guid bookId,
@@ -30,18 +31,19 @@ public sealed class CreateLoanUseCase(
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        var loan = await unitOfWork.ExecuteInTransactionAsync(
+        var outcome = await unitOfWork.ExecuteInTransactionAsync(
             async ct =>
             {
+                var requestHash = LoanRequestCanonicalizer.ComputeHash(bookId, userId);
                 var reservation = await idempotency.TryReserveAsync(
                     IdempotencyEndpoint,
                     idempotencyKey,
-                    LoanRequestCanonicalizer.ComputeHash(bookId, userId),
+                    requestHash,
                     ct);
 
                 if (!reservation.IsOwner)
                 {
-                    throw new BusinessRuleException("An operation with this Idempotency-Key is already in progress.");
+                    return ReplayOrConflict(reservation, requestHash);
                 }
 
                 _ = await users.GetByIdAsync(userId, ct)
@@ -86,23 +88,54 @@ public sealed class CreateLoanUseCase(
                     utcNow,
                     ct);
 
+                var dto = LoanDto.From(created);
+                await idempotency.CompleteAsync(
+                    IdempotencyEndpoint,
+                    idempotencyKey,
+                    CreatedStatus,
+                    JsonPayload.Serialize(dto),
+                    ct);
+
                 await unitOfWork.SaveChangesAsync(ct);
-                return created;
+                return new CreateLoanOutcome(dto, Created: true);
             },
             cancellationToken);
 
-        try
+        if (outcome.Created)
         {
-            await cache.RemoveAsync(bookId, cancellationToken);
-        }
-        catch (Exception exception) when (exception is not OperationCanceledException)
-        {
-            logger.LogWarning(
-                exception,
-                "Failed to invalidate availability cache for book {BookId}",
-                bookId);
+            try
+            {
+                await cache.RemoveAsync(bookId, cancellationToken);
+            }
+            catch (Exception exception) when (exception is not OperationCanceledException)
+            {
+                logger.LogWarning(
+                    exception,
+                    "Failed to invalidate availability cache for book {BookId}",
+                    bookId);
+            }
         }
 
-        return LoanDto.From(loan);
+        return outcome.Loan;
     }
+
+    private static CreateLoanOutcome ReplayOrConflict(IdempotencyLookup reservation, string requestHash)
+    {
+        if (!string.Equals(reservation.RequestHash, requestHash, StringComparison.Ordinal))
+        {
+            throw new IdempotencyConflictException();
+        }
+
+        if (reservation.ResponseStatus == CreatedStatus
+            && !string.IsNullOrWhiteSpace(reservation.ResponseBody))
+        {
+            var replayed = JsonPayload.Deserialize<LoanDto>(reservation.ResponseBody)
+                ?? throw new InvalidOperationException("Stored idempotency response is invalid.");
+            return new CreateLoanOutcome(replayed, Created: false);
+        }
+
+        throw new InvalidOperationException("An operation with this Idempotency-Key is already in progress.");
+    }
+
+    private sealed record CreateLoanOutcome(LoanDto Loan, bool Created);
 }

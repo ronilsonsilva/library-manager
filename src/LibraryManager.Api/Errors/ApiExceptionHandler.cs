@@ -18,6 +18,7 @@ public sealed class ApiExceptionHandler : IExceptionHandler
         var (status, title) = exception switch
         {
             EntityNotFoundException => (HttpStatusCode.NotFound, "Not Found"),
+            IdempotencyConflictException => (HttpStatusCode.Conflict, "Conflict"),
             BusinessRuleException => (HttpStatusCode.UnprocessableEntity, "Unprocessable Entity"),
             DomainException => (HttpStatusCode.BadRequest, "Bad Request"),
             _ => (HttpStatusCode.InternalServerError, "Internal Server Error")

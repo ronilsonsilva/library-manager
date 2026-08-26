@@ -159,14 +159,14 @@ description: "Task list for Library Manager API implementation"
 
 ### Tests for User Story 4
 
-- [ ] T061 [P] [US4] Add failing tests for missing key (400), sequential replay (HTTP 201 + stored body), concurrent same key, different payload HTTP 409, and unexpected failure after key reserve (ownership rolled back; retry with the same key creates the loan, not a replay) in `tests/LibraryManager.IntegrationTests/Loans/IdempotencyTests.cs` and `tests/LibraryManager.UnitTests/Application/CreateLoanIdempotencyRollbackTests.cs`
-- [ ] T062 [P] [US4] Add unit tests for canonical JSON + SHA-256 in `tests/LibraryManager.UnitTests/Application/IdempotencyCanonicalizationTests.cs`
+- [X] T061 [P] [US4] Add failing tests for missing key (400), sequential replay (HTTP 201 + stored body), concurrent same key, different payload HTTP 409, and unexpected failure after key reserve (ownership rolled back; retry with the same key creates the loan, not a replay) in `tests/LibraryManager.IntegrationTests/Loans/IdempotencyTests.cs` and `tests/LibraryManager.UnitTests/Application/CreateLoanIdempotencyRollbackTests.cs`
+- [X] T062 [P] [US4] Add unit tests for canonical JSON + SHA-256 in `tests/LibraryManager.UnitTests/Application/IdempotencyCanonicalizationTests.cs`
 
 ### Implementation for User Story 4
 
-- [ ] T063 [US4] Canonicalize `{bookId,userId}` and compute SHA-256 in `src/LibraryManager.Infrastructure/Idempotency/LoanRequestCanonicalizer.cs`
-- [ ] T064 [US4] Wire HTTP 201 replay vs HTTP 409 vs reserve in `src/LibraryManager.Infrastructure/Idempotency/IdempotencyStore.cs` and `src/LibraryManager.Application/Loans/CreateLoan/CreateLoanUseCase.cs`
-- [ ] T065 [US4] Ensure unexpected exceptions roll back idempotency ownership with the ambient EF transaction in `src/LibraryManager.Application/Loans/CreateLoan/CreateLoanUseCase.cs` (T061 rollback tests must pass)
+- [X] T063 [US4] Canonicalize `{bookId,userId}` and compute SHA-256 in `src/LibraryManager.Infrastructure/Idempotency/LoanRequestCanonicalizer.cs`
+- [X] T064 [US4] Wire HTTP 201 replay vs HTTP 409 vs reserve in `src/LibraryManager.Infrastructure/Idempotency/IdempotencyStore.cs` and `src/LibraryManager.Application/Loans/CreateLoan/CreateLoanUseCase.cs`
+- [X] T065 [US4] Ensure unexpected exceptions roll back idempotency ownership with the ambient EF transaction in `src/LibraryManager.Application/Loans/CreateLoan/CreateLoanUseCase.cs` (T061 rollback tests must pass)
 - [ ] T066 [US4] Increment `library_manager_idempotency_replays` in `src/LibraryManager.Api/Telemetry/LibraryManagerMetrics.cs`
 
 **Checkpoint**: Idempotency guarantees are independently proven
