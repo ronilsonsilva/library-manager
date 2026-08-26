@@ -62,15 +62,15 @@ description: "Task list for Library Manager API implementation"
 - [ ] T024 Implement `IOutboxWriter` using the current `LibraryDbContext` transaction in `src/LibraryManager.Infrastructure/Outbox/OutboxWriter.cs` (async methods take `CancellationToken`)
 - [ ] T025 Implement `IAvailabilityCache` in `src/LibraryManager.Infrastructure/Caching/RedisAvailabilityCache.cs` (key `library-manager:books:{bookId}:availability`, TTL 60s; async methods take `CancellationToken`)
 - [ ] T026 [P] Implement `IClock` in `src/LibraryManager.Infrastructure/Time/SystemClock.cs`
-- [ ] T027 [P] Implement `ICurrentUserContext` from JWT `sub` in `src/LibraryManager.Api/Security/CurrentUserContext.cs`
+- [X] T027 [P] Implement `ICurrentUserContext` from JWT `sub` in `src/LibraryManager.Api/Security/CurrentUserContext.cs`
 - [ ] T028 [P] Implement `ICorrelationContext` in `src/LibraryManager.Api/Middleware/CorrelationContext.cs`
-- [ ] T029 Configure JwtBearer (`Authentication:Authority`, `Authentication:Audience`, issuer/audience/signature/lifetime, `MapInboundClaims = false`, `RoleClaimType = roles`) and Librarian policy in `src/LibraryManager.Api/Program.cs` and `src/LibraryManager.Api/Security/LibrarianPolicy.cs`
+- [X] T029 Configure JwtBearer (`Authentication:Authority`, `Authentication:Audience`, issuer/audience/signature/lifetime, `MapInboundClaims = false`, `RoleClaimType = roles`) and Librarian policy in `src/LibraryManager.Api/Program.cs` and `src/LibraryManager.Api/Security/LibrarianPolicy.cs`
 - [ ] T030 Add `CorrelationIdMiddleware` for `X-Correlation-ID` in `src/LibraryManager.Api/Middleware/CorrelationIdMiddleware.cs`
 - [ ] T031 Configure RFC Problem Details and `src/LibraryManager.Api/appsettings.json` plus `appsettings.Development.json`
 - [ ] T032 Map anonymous `GET /health/live` (process-only, 200 if the process is up) and `GET /health/ready` (Postgres + Redis, HTTP 503 when a dependency is down) in `src/LibraryManager.Api/Health/HealthEndpoints.cs` and `Program.cs`
 - [ ] T033 Register composition in `src/LibraryManager.Infrastructure/DependencyInjection.cs` and `src/LibraryManager.Api/Program.cs`
 - [ ] T034 Add `CustomWebApplicationFactory` with Testcontainers PostgreSQL and Redis in `tests/LibraryManager.IntegrationTests/Infrastructure/CustomWebApplicationFactory.cs`. The factory MUST support two (or more) host instances that share one PostgreSQL connection string and one Redis connection string; apply EF migrations once; do not start a second database container per host.
-- [ ] T035 Add test-only authentication scheme gated by `Testing:UseTestAuth` in `tests/LibraryManager.IntegrationTests/Infrastructure/TestAuthHandler.cs`
+- [X] T035 Add test-only authentication scheme gated by `Testing:UseTestAuth` in `tests/LibraryManager.IntegrationTests/Infrastructure/TestAuthHandler.cs`
 - [X] T036 Add initial EF Core migration in `src/LibraryManager.Infrastructure/Persistence/Migrations/`
 
 **Checkpoint**: Foundation ready — user story implementation can begin
@@ -181,15 +181,15 @@ description: "Task list for Library Manager API implementation"
 
 ### Tests for User Story 5
 
-- [ ] T067 [P] [US5] Add failing 401/403/success mutation tests in `tests/LibraryManager.IntegrationTests/Security/AuthorizationTests.cs`
+- [X] T067 [P] [US5] Add failing 401/403/success mutation tests in `tests/LibraryManager.IntegrationTests/Security/AuthorizationTests.cs`
 - [ ] T068 [P] [US5] Add failing test that AuditEvent.ActorId equals authenticated subject in `tests/LibraryManager.IntegrationTests/Security/AuditActorTests.cs`
 
 ### Implementation for User Story 5
 
-- [ ] T069 [US5] Create importable realm `infrastructure/keycloak/library-manager-realm.json` (realm `library-manager`, clients `library-manager-api` and `library-manager-swagger`, librarian role, flat `roles` claim, redirect `http://localhost:8080/swagger/oauth2-redirect.html` only, no production secrets)
-- [ ] T070 [US5] Configure Swagger UI Authorization Code + PKCE for `library-manager-swagger` in `src/LibraryManager.Api/OpenApi/SwaggerConfiguration.cs` and `Program.cs`
-- [ ] T071 [US5] Ensure no username/password token endpoint exists in `src/LibraryManager.Api/`
-- [ ] T072 [US5] Keep health endpoints `[AllowAnonymous]` in `src/LibraryManager.Api/Health/HealthEndpoints.cs`
+- [X] T069 [US5] Create importable realm `infrastructure/keycloak/library-manager-realm.json` (realm `library-manager`, clients `library-manager-api` and `library-manager-swagger`, librarian role, flat `roles` claim, redirect `http://localhost:8080/swagger/oauth2-redirect.html` only, no production secrets)
+- [X] T070 [US5] Configure Swagger UI Authorization Code + PKCE for `library-manager-swagger` in `src/LibraryManager.Api/OpenApi/SwaggerConfiguration.cs` and `Program.cs`
+- [X] T071 [US5] Ensure no username/password token endpoint exists in `src/LibraryManager.Api/`
+- [X] T072 [US5] Keep health endpoints `[AllowAnonymous]` in `src/LibraryManager.Api/Health/HealthEndpoints.cs`
 
 **Checkpoint**: Authn/z semantics and local OIDC are demonstrable
 
