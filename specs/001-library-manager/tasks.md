@@ -58,9 +58,9 @@ description: "Task list for Library Manager API implementation"
 - [X] T020 [P] Add Infrastructure `OutboxMessage` entity and configuration in `src/LibraryManager.Infrastructure/Outbox/OutboxMessage.cs` and `OutboxMessageConfiguration.cs`
 - [X] T021 Implement repositories in `src/LibraryManager.Infrastructure/Persistence/Repositories/BookRepository.cs`, `UserRepository.cs`, `LoanRepository.cs`, `AuditRepository.cs` (async methods take `CancellationToken`)
 - [X] T022 Implement `IUnitOfWork` in `src/LibraryManager.Infrastructure/Persistence/UnitOfWork.cs` (`SaveChangesAsync` / transaction APIs take `CancellationToken`)
-- [ ] T023 Implement `IIdempotencyStore` with `INSERT ON CONFLICT` in `src/LibraryManager.Infrastructure/Idempotency/IdempotencyStore.cs` (async methods take `CancellationToken`; US3 may call reserve only; hash/replay/409 is T064)
+- [X] T023 Implement `IIdempotencyStore` with `INSERT ON CONFLICT` in `src/LibraryManager.Infrastructure/Idempotency/IdempotencyStore.cs` (async methods take `CancellationToken`; US3 may call reserve only; hash/replay/409 is T064)
 - [X] T024 Implement `IOutboxWriter` using the current `LibraryDbContext` transaction in `src/LibraryManager.Infrastructure/Outbox/OutboxWriter.cs` (async methods take `CancellationToken`)
-- [ ] T025 Implement `IAvailabilityCache` in `src/LibraryManager.Infrastructure/Caching/RedisAvailabilityCache.cs` (key `library-manager:books:{bookId}:availability`, TTL 60s; async methods take `CancellationToken`)
+- [X] T025 Implement `IAvailabilityCache` in `src/LibraryManager.Infrastructure/Caching/RedisAvailabilityCache.cs` (key `library-manager:books:{bookId}:availability`, TTL 60s; async methods take `CancellationToken`)
 - [X] T026 [P] Implement `IClock` in `src/LibraryManager.Infrastructure/Time/SystemClock.cs`
 - [X] T027 [P] Implement `ICurrentUserContext` from JWT `sub` in `src/LibraryManager.Api/Security/CurrentUserContext.cs`
 - [X] T028 [P] Implement `ICorrelationContext` in `src/LibraryManager.Api/Middleware/CorrelationContext.cs`
@@ -134,18 +134,18 @@ description: "Task list for Library Manager API implementation"
 
 ### Tests for User Story 3
 
-- [ ] T052 [P] [US3] Add Domain unit tests for Loan and DueAtUtc (`BorrowedAtUtc.AddDays(14)` in UTC) in `tests/LibraryManager.UnitTests/Domain/LoanTests.cs`
-- [ ] T053 [P] [US3] Add failing integration tests for successful loan, unknown UserId/BookId (HTTP 404), and concurrent last-copy using two `CustomWebApplicationFactory` instances that share one Testcontainers PostgreSQL (from T034) in `tests/LibraryManager.IntegrationTests/Loans/CreateLoanTests.cs`
+- [X] T052 [P] [US3] Add Domain unit tests for Loan and DueAtUtc (`BorrowedAtUtc.AddDays(14)` in UTC) in `tests/LibraryManager.UnitTests/Domain/LoanTests.cs`
+- [X] T053 [P] [US3] Add failing integration tests for successful loan, unknown UserId/BookId (HTTP 404), and concurrent last-copy using two `CustomWebApplicationFactory` instances that share one Testcontainers PostgreSQL (from T034) in `tests/LibraryManager.IntegrationTests/Loans/CreateLoanTests.cs`
 
 ### Implementation for User Story 3
 
-- [ ] T054 [US3] Implement atomic `TryReserveAvailability` SQL on `BookRepository` in `src/LibraryManager.Infrastructure/Persistence/Repositories/BookRepository.cs`
-- [ ] T055 [US3] Implement `CreateLoanUseCase` business transaction (reserve idempotency key only — do not complete hash/replay/409; those are T063–T065; validate User, reserve availability, insert Loan with DueAtUtc = BorrowedAtUtc.AddDays(14) in UTC, LoanCreated AuditEvent, BookAvailabilityChanged Outbox, commit) in `src/LibraryManager.Application/Loans/CreateLoan/CreateLoanUseCase.cs`
-- [ ] T056 [US3] After commit, `await` Redis invalidation without failing the HTTP result in `src/LibraryManager.Application/Loans/CreateLoan/CreateLoanUseCase.cs`
-- [ ] T057 [US3] Implement `LoansController` POST `/loans` with required `Idempotency-Key` in `src/LibraryManager.Api/Controllers/LoansController.cs`
+- [X] T054 [US3] Implement atomic `TryReserveAvailability` SQL on `BookRepository` in `src/LibraryManager.Infrastructure/Persistence/Repositories/BookRepository.cs`
+- [X] T055 [US3] Implement `CreateLoanUseCase` business transaction (reserve idempotency key only — do not complete hash/replay/409; those are T063–T065; validate User, reserve availability, insert Loan with DueAtUtc = BorrowedAtUtc.AddDays(14) in UTC, LoanCreated AuditEvent, BookAvailabilityChanged Outbox, commit) in `src/LibraryManager.Application/Loans/CreateLoan/CreateLoanUseCase.cs`
+- [X] T056 [US3] After commit, `await` Redis invalidation without failing the HTTP result in `src/LibraryManager.Application/Loans/CreateLoan/CreateLoanUseCase.cs`
+- [X] T057 [US3] Implement `LoansController` POST `/loans` with required `Idempotency-Key` in `src/LibraryManager.Api/Controllers/LoansController.cs`
 - [ ] T058 [US3] Implement `GetBookLoanHistoryUseCase` and GET `/books/{id}/loans` with `page` (default 1) and `pageSize` (default 20, maximum 100) in `src/LibraryManager.Application/Loans/GetBookLoanHistory/GetBookLoanHistoryUseCase.cs` and `BooksController`
 - [ ] T059 [US3] Record `library_manager_loans_created`, `library_manager_loans_unavailable`, and `library_manager_loan_duration` in `src/LibraryManager.Api/Telemetry/LibraryManagerMetrics.cs` from the create-loan path
-- [ ] T060 [US3] Reject inactive book, zero copies, and duplicate Active (UserId, BookId) with HTTP 422 Problem Details; reject unknown UserId or BookId with HTTP 404 in `src/LibraryManager.Application/Loans/CreateLoan/CreateLoanUseCase.cs`
+- [X] T060 [US3] Reject inactive book, zero copies, and duplicate Active (UserId, BookId) with HTTP 422 Problem Details; reject unknown UserId or BookId with HTTP 404 in `src/LibraryManager.Application/Loans/CreateLoan/CreateLoanUseCase.cs`
 
 **Checkpoint**: Lending is correct for sequential and last-copy concurrent cases, including two hosts sharing PostgreSQL. Full idempotency (201 replay, 409 mismatch, hash, rollback) is US4.
 

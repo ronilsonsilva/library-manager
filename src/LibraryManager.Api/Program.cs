@@ -9,6 +9,7 @@ using LibraryManager.Application.Books.DeactivateBook;
 using LibraryManager.Application.Books.GetBook;
 using LibraryManager.Application.Books.ListBooks;
 using LibraryManager.Application.Books.UpdateBook;
+using LibraryManager.Application.Loans.CreateLoan;
 using LibraryManager.Application.Users.CreateUser;
 using LibraryManager.Application.Users.GetUserLoans;
 using LibraryManager.Infrastructure;
@@ -30,6 +31,7 @@ builder.Services.AddScoped<UpdateBookUseCase>();
 builder.Services.AddScoped<DeactivateBookUseCase>();
 builder.Services.AddScoped<CreateUserUseCase>();
 builder.Services.AddScoped<GetUserLoansUseCase>();
+builder.Services.AddScoped<CreateLoanUseCase>();
 
 var app = builder.Build();
 

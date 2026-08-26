@@ -1,4 +1,6 @@
 using LibraryManager.Application.Abstractions;
+using LibraryManager.Infrastructure.Caching;
+using LibraryManager.Infrastructure.Idempotency;
 using LibraryManager.Infrastructure.Outbox;
 using LibraryManager.Infrastructure.Persistence;
 using LibraryManager.Infrastructure.Persistence.Repositories;
@@ -25,6 +27,8 @@ public static class DependencyInjection
         services.AddScoped<IAuditRepository, AuditRepository>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
         services.AddScoped<IOutboxWriter, OutboxWriter>();
+        services.AddScoped<IIdempotencyStore, IdempotencyStore>();
+        services.AddSingleton<IAvailabilityCache, RedisAvailabilityCache>();
         services.AddSingleton<IClock, SystemClock>();
 
         return services;
