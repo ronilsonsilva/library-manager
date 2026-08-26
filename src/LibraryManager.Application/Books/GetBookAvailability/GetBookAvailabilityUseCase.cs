@@ -1,5 +1,4 @@
 using LibraryManager.Application.Abstractions;
-using LibraryManager.Application.Books;
 using LibraryManager.Application.Common;
 using Microsoft.Extensions.Logging;
 

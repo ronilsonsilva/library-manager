@@ -1,6 +1,5 @@
 using LibraryManager.Application.Abstractions;
 using LibraryManager.Application.Common;
-using LibraryManager.Application.Loans;
 
 namespace LibraryManager.Application.Loans.GetBookLoanHistory;
 

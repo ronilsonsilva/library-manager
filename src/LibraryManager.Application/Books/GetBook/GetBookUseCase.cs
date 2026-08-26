@@ -1,5 +1,4 @@
 using LibraryManager.Application.Abstractions;
-using LibraryManager.Application.Books;
 using LibraryManager.Application.Common;
 
 namespace LibraryManager.Application.Books.GetBook;

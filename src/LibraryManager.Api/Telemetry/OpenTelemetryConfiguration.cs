@@ -2,7 +2,6 @@ using LibraryManager.Application.Abstractions;
 using LibraryManager.Application.Telemetry;
 using LibraryManager.Infrastructure.Caching;
 using Npgsql;
-using OpenTelemetry.Instrumentation.StackExchangeRedis;
 using OpenTelemetry.Logs;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;

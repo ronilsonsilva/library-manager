@@ -1,6 +1,5 @@
 using LibraryManager.Application.Abstractions;
 using LibraryManager.Application.Common;
-using LibraryManager.Application.Users;
 using LibraryManager.Domain;
 
 namespace LibraryManager.Application.Users.CreateUser;

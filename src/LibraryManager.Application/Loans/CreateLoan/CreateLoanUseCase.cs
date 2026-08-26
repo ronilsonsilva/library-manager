@@ -1,10 +1,9 @@
-using System.Diagnostics;
 using LibraryManager.Application.Abstractions;
 using LibraryManager.Application.Common;
-using LibraryManager.Application.Loans;
 using LibraryManager.Application.Telemetry;
 using LibraryManager.Domain;
 using Microsoft.Extensions.Logging;
+using System.Diagnostics;
 
 namespace LibraryManager.Application.Loans.CreateLoan;
 
