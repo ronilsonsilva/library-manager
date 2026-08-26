@@ -1,0 +1,248 @@
+openapi: 3.0.3
+info:
+  title: Library Manager API — production-hardening contract
+  version: 1.1.0
+  description: >
+    Additive HTTP contract for production-hardening. Resource JSON bodies remain
+    compatible with specs/001-library-manager/contracts/openapi.yaml. This file
+    specifies transport validation, Idempotency-Key binding, localization, and
+    Result problem details. Lending semantics (201 create/replay, 409 canonical
+    mismatch only, 422 business rules, 404 missing named entities) are unchanged.
+servers:
+  - url: http://localhost:8080
+    description: Local Docker Compose
+tags:
+  - name: Loans
+  - name: Books
+  - name: Localization
+  - name: Errors
+paths:
+  /loans:
+    post:
+      tags: [Loans]
+      operationId: createLoan
+      summary: Create a loan (Librarian)
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+        - $ref: '#/components/parameters/AcceptLanguage'
+        - $ref: '#/components/parameters/CorrelationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateLoanRequest' }
+      responses:
+        '201':
+          description: Created or same-key same-hash replay
+          headers:
+            X-Correlation-ID: { $ref: '#/components/headers/X-Correlation-ID' }
+            Content-Language: { $ref: '#/components/headers/Content-Language' }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/LoanResponse' }
+        '400':
+          description: >
+            Missing/empty/whitespace/overlong Idempotency-Key, or invalid body.
+            CreateLoanUseCase MUST NOT run. ValidationProblemDetails.
+          headers:
+            X-Correlation-ID: { $ref: '#/components/headers/X-Correlation-ID' }
+            Content-Language: { $ref: '#/components/headers/Content-Language' }
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/ValidationProblemDetails' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404':
+          description: Unknown UserId or BookId (`Book.NotFound` / `User.NotFound`)
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/ResultProblemDetails' }
+        '409':
+          description: Idempotency-Key reused with a different canonical body
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/ResultProblemDetails' }
+        '422':
+          description: Business rule (`Book.Unavailable`, `Loan.DuplicateActive`, inactive book)
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/ResultProblemDetails' }
+  /books:
+    post:
+      tags: [Books]
+      operationId: createBook
+      summary: Create book — body validated by DataAnnotations before the use case
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/AcceptLanguage'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateBookRequest' }
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/BookResponse' }
+        '400':
+          description: Transport body validation (title/ISBN/range)
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/ValidationProblemDetails' }
+        '422':
+          description: Duplicate ISBN
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/ResultProblemDetails' }
+  /books/{id}/availability:
+    get:
+      tags: [Books]
+      operationId: getBookAvailability
+      summary: Availability from PostgreSQL when Redis misses or fails
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Catalog-correct availability even if Redis is down
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/BookAvailabilityResponse' }
+        '404':
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/ResultProblemDetails' }
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  parameters:
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: true
+      description: >
+        Bound by FromIdempotencyKey / IdempotencyKeyModelBinder. Missing, empty,
+        whitespace, or length greater than 128 → HTTP 400 ModelState. Length 128
+        is valid. Surrounding whitespace is trimmed. Not a Domain type.
+      schema:
+        type: string
+        minLength: 1
+        maxLength: 128
+    AcceptLanguage:
+      name: Accept-Language
+      in: header
+      required: false
+      description: Primary culture selector. Supported en-US (default) and pt-BR.
+      schema:
+        type: string
+        example: pt-BR
+    CorrelationId:
+      name: X-Correlation-ID
+      in: header
+      required: false
+      schema: { type: string }
+  headers:
+    X-Correlation-ID:
+      schema: { type: string }
+    Content-Language:
+      schema:
+        type: string
+        enum: [en-US, pt-BR]
+  responses:
+    Unauthorized:
+      description: Missing or invalid bearer token
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/ProblemDetails' }
+    Forbidden:
+      description: Authenticated without Librarian
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/ProblemDetails' }
+  schemas:
+    CreateLoanRequest:
+      type: object
+      required: [bookId, userId]
+      properties:
+        bookId: { type: string, format: uuid }
+        userId: { type: string, format: uuid }
+    CreateBookRequest:
+      type: object
+      required: [title, isbn, author, totalCopies]
+      properties:
+        title: { type: string, minLength: 1, maxLength: 500 }
+        isbn: { type: string, minLength: 1, maxLength: 32 }
+        author: { type: string, minLength: 1, maxLength: 500 }
+        totalCopies: { type: integer, minimum: 1 }
+    LoanResponse:
+      type: object
+      description: Same JSON shape as 001 LoanDto / Book loan body
+      additionalProperties: true
+    BookResponse:
+      type: object
+      additionalProperties: true
+    BookAvailabilityResponse:
+      type: object
+      properties:
+        bookId: { type: string, format: uuid }
+        availableCopies: { type: integer }
+        totalCopies: { type: integer }
+        isActive: { type: boolean }
+    ProblemDetails:
+      type: object
+      properties:
+        type: { type: string }
+        title: { type: string }
+        status: { type: integer }
+        detail: { type: string }
+        instance: { type: string }
+        correlationId: { type: string }
+    ValidationProblemDetails:
+      allOf:
+        - $ref: '#/components/schemas/ProblemDetails'
+        - type: object
+          properties:
+            title:
+              description: Localized Problem_Validation_Title
+              type: string
+            errors:
+              type: object
+              additionalProperties:
+                type: array
+                items: { type: string }
+    PagedResponse:
+      type: object
+      description: >
+        API list/history envelope mapped from Application PagedResult.
+        Controllers MUST NOT serialize Application PagedResult or DTOs.
+        JSON field names match 001.
+      required: [items, page, pageSize, totalCount]
+      properties:
+        items:
+          type: array
+          items: {}
+        page: { type: integer }
+        pageSize: { type: integer }
+        totalCount: { type: integer }
+    ResultProblemDetails:
+      allOf:
+        - $ref: '#/components/schemas/ProblemDetails'
+        - type: object
+          properties:
+            code:
+              type: string
+              description: Language-neutral Error.Code (e.g. Book.NotFound)
+              example: Book.NotFound
+            detail:
+              description: Localized Error_* text
+              type: string
+```
