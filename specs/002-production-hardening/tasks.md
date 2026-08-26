@@ -27,8 +27,8 @@ description: "Task list for production-hardening implementation"
 
 **Purpose**: Folders and host settings localization needs before any story
 
-- [ ] T001 Create `src/LibraryManager.Api/Contracts/Common/`, `Contracts/Books/Requests/`, `Contracts/Books/Responses/`, `Contracts/Users/Requests/`, `Contracts/Users/Responses/`, `Contracts/Loans/Requests/`, `Contracts/Loans/Responses/`, `Contracts/Audit/Responses/`, `ModelBinding/IdempotencyKey/`, `Localization/`, and `Resources/` directories
-- [ ] T002 [P] Set `InvariantGlobalization` to `false` and include `Resources/*.resx` in `src/LibraryManager.Api/LibraryManager.Api.csproj`
+- [X] T001 Create `src/LibraryManager.Api/Contracts/Common/`, `Contracts/Books/Requests/`, `Contracts/Books/Responses/`, `Contracts/Users/Requests/`, `Contracts/Users/Responses/`, `Contracts/Loans/Requests/`, `Contracts/Loans/Responses/`, `Contracts/Audit/Responses/`, `ModelBinding/IdempotencyKey/`, `Localization/`, and `Resources/` directories
+- [X] T002 [P] Set `InvariantGlobalization` to `false` and include `Resources/*.resx` in `src/LibraryManager.Api/LibraryManager.Api.csproj`
 - [ ] T003 [P] Create test folders `tests/LibraryManager.UnitTests/Api/`, `tests/LibraryManager.UnitTests/Infrastructure/`, `tests/LibraryManager.IntegrationTests/Architecture/`, `tests/LibraryManager.IntegrationTests/Localization/`, and `tests/LibraryManager.IntegrationTests/Errors/`
 
 ---
@@ -44,9 +44,9 @@ description: "Task list for production-hardening implementation"
 - [ ] T006 [P] Add stable English codes from `data-model.md` in `src/LibraryManager.Domain/ErrorCodes.cs`
 - [ ] T007 Implement `DomainGuard` (required string, non-empty Guid, positive int, UTC timestamp) in `src/LibraryManager.Domain/Validation/DomainGuard.cs`
 - [ ] T008 [P] Add `SharedResource` marker in `src/LibraryManager.Api/Localization/SharedResource.cs`
-- [ ] T009 [P] Create `src/LibraryManager.Api/Resources/SharedResource.resx`, `SharedResource.en-US.resx`, and `SharedResource.pt-BR.resx` with keys from `plan.md` (including `Validation_IdempotencyKey_Required`, `Validation_IdempotencyKey_MaxLength`, `Validation_Title_Required`, `Validation_Isbn_Required`, `Validation_TotalCopies_Range`, `Error_Book_NotFound`, `Error_Book_Unavailable`, `Error_Loan_InvalidState`, `Error_Idempotency_Conflict`, `Problem_Validation_Title`, `Problem_Unexpected_Title`)
+- [X] T009 [P] Create `src/LibraryManager.Api/Resources/SharedResource.resx`, `SharedResource.en-US.resx`, and `SharedResource.pt-BR.resx` with keys from `plan.md` (including `Validation_IdempotencyKey_Required`, `Validation_IdempotencyKey_MaxLength`, `Validation_Title_Required`, `Validation_Isbn_Required`, `Validation_TotalCopies_Range`, `Error_Book_NotFound`, `Error_Book_Unavailable`, `Error_Loan_InvalidState`, `Error_Idempotency_Conflict`, `Problem_Validation_Title`, `Problem_Unexpected_Title`)
 - [ ] T010 Implement `ErrorLocalizer` mapping `Error.Code` to `Error_*` resources in `src/LibraryManager.Api/Localization/ErrorLocalizer.cs`
-- [ ] T011 Configure `AddLocalization`, `AddDataAnnotationsLocalization`, `RequestLocalization` (`en-US` default, `pt-BR`, `Accept-Language`), and `Content-Language` in `src/LibraryManager.Api/Localization/LocalizationConfiguration.cs` and `src/LibraryManager.Api/Program.cs` (CorrelationId → RequestLocalization → ExceptionHandler)
+- [X] T011 Configure `AddLocalization`, `AddDataAnnotationsLocalization`, `RequestLocalization` (`en-US` default, `pt-BR`, `Accept-Language`), and `Content-Language` in `src/LibraryManager.Api/Localization/LocalizationConfiguration.cs` and `src/LibraryManager.Api/Program.cs` (CorrelationId → RequestLocalization → ExceptionHandler)
 - [ ] T012 Implement `ToActionResult`, `ToCreatedResult`, and `ToNoContentResult` in `src/LibraryManager.Api/Results/ResultHttpMapper.cs` (map Validation/NotFound/BusinessRule/Conflict to 400/404/422/409; set `code` + `correlationId`; never throw)
 - [ ] T013 [P] Add unit tests for `Result`/`Error` in `tests/LibraryManager.UnitTests/Domain/ResultTests.cs`
 - [ ] T014 [P] Add unit tests for `DomainGuard` in `tests/LibraryManager.UnitTests/Domain/DomainGuardTests.cs`
@@ -89,26 +89,26 @@ description: "Task list for production-hardening implementation"
 ### Tests for User Story 2
 
 - [X] T022 [P] [US2] Add failing architecture tests that `src/LibraryManager.Api/Controllers/*.cs` declare no `public sealed record` transport types and that list/history/audit actions do not return Application `PagedResult<T>` or Application DTOs as HTTP contracts in `tests/LibraryManager.IntegrationTests/Architecture/ControllerContractLocationTests.cs`
-- [ ] T023 [P] [US2] Add failing Idempotency-Key tests (missing, empty, whitespace, 129, 128, trim, no loan side effect) in `tests/LibraryManager.IntegrationTests/Loans/IdempotencyKeyBindingTests.cs`
-- [ ] T024 [P] [US2] Add failing body-validation tests (required title/ISBN, TotalCopies range) expecting HTTP 400 ValidationProblemDetails in `tests/LibraryManager.IntegrationTests/Books/BookBodyValidationTests.cs`
-- [ ] T025 [P] [US2] Add failing binder unit tests (missing/empty/max length/trim, no throw, no swallow of `OperationCanceledException`) in `tests/LibraryManager.UnitTests/Api/IdempotencyKeyModelBinderTests.cs`
+- [X] T023 [P] [US2] Add failing Idempotency-Key tests (missing, empty, whitespace, 129, 128, trim, no loan side effect) in `tests/LibraryManager.IntegrationTests/Loans/IdempotencyKeyBindingTests.cs`
+- [X] T024 [P] [US2] Add failing body-validation tests (required title/ISBN, TotalCopies range) expecting HTTP 400 ValidationProblemDetails in `tests/LibraryManager.IntegrationTests/Books/BookBodyValidationTests.cs`
+- [X] T025 [P] [US2] Add failing binder unit tests (missing/empty/max length/trim, no throw, no swallow of `OperationCanceledException`) in `tests/LibraryManager.UnitTests/Api/IdempotencyKeyModelBinderTests.cs`
 
 ### Implementation for User Story 2
 
 - [X] T026 [P] [US2] Implement readonly `IdempotencyKey` with normalized `Value` in `src/LibraryManager.Api/Contracts/Common/IdempotencyKey.cs`
-- [ ] T027 [P] [US2] Implement `IModelBinder` (header `Idempotency-Key`, localized ModelState keys, no expected throws) in `src/LibraryManager.Api/ModelBinding/IdempotencyKey/IdempotencyKeyModelBinder.cs`
-- [ ] T028 [P] [US2] Implement `FromIdempotencyKeyAttribute` in `src/LibraryManager.Api/ModelBinding/IdempotencyKey/FromIdempotencyKeyAttribute.cs`
+- [X] T027 [P] [US2] Implement `IModelBinder` (header `Idempotency-Key`, localized ModelState keys, no expected throws) in `src/LibraryManager.Api/ModelBinding/IdempotencyKey/IdempotencyKeyModelBinder.cs`
+- [X] T028 [P] [US2] Implement `FromIdempotencyKeyAttribute` in `src/LibraryManager.Api/ModelBinding/IdempotencyKey/FromIdempotencyKeyAttribute.cs`
 - [X] T029 [P] [US2] Add `CreateBookRequest` and `UpdateBookRequest` with DataAnnotations in `src/LibraryManager.Api/Contracts/Books/Requests/CreateBookRequest.cs` and `UpdateBookRequest.cs`
 - [X] T030 [P] [US2] Add `CreateUserRequest` with DataAnnotations in `src/LibraryManager.Api/Contracts/Users/Requests/CreateUserRequest.cs`
 - [X] T031 [P] [US2] Add `CreateLoanRequest` with DataAnnotations in `src/LibraryManager.Api/Contracts/Loans/Requests/CreateLoanRequest.cs`
 - [X] T032 [P] [US2] Add `PagedResponse<T>` (`Items`, `Page`, `PageSize`, `TotalCount` → JSON `items`, `page`, `pageSize`, `totalCount`) in `src/LibraryManager.Api/Contracts/Common/PagedResponse.cs`; add `BookResponse` and `BookAvailabilityResponse` (map from Application DTOs; same JSON as today) in `src/LibraryManager.Api/Contracts/Books/Responses/BookResponse.cs` and `BookAvailabilityResponse.cs`
 - [X] T033 [P] [US2] Add `UserResponse`, `LoanResponse`, and `AuditEventResponse` in `src/LibraryManager.Api/Contracts/Users/Responses/UserResponse.cs`, `Contracts/Loans/Responses/LoanResponse.cs`, and `Contracts/Audit/Responses/AuditEventResponse.cs`
-- [ ] T034 [US2] Configure `[ApiController]` `InvalidModelStateResponseFactory` for localized `Problem_Validation_Title` plus `correlationId` in `src/LibraryManager.Api/Localization/LocalizationConfiguration.cs`
+- [X] T034 [US2] Configure `[ApiController]` `InvalidModelStateResponseFactory` for localized `Problem_Validation_Title` plus `correlationId` in `src/LibraryManager.Api/Localization/LocalizationConfiguration.cs`
 - [X] T035 [US2] Update `src/LibraryManager.Api/Controllers/BooksController.cs` to use Contracts only (no local records, no ModelState inspection); `List` returns `PagedResponse<BookResponse>`; `GetLoanHistory` returns `PagedResponse<LoanResponse>` (map from Application `PagedResult<TDto>`)
 - [X] T036 [US2] Update `src/LibraryManager.Api/Controllers/UsersController.cs` to use Contracts only; `GetLoans` returns `PagedResponse<LoanResponse>`
-- [ ] T037 [US2] Update `Create` in `src/LibraryManager.Api/Controllers/LoansController.cs` to `[FromIdempotencyKey] IdempotencyKey idempotencyKey`, pass `idempotencyKey.Value`, no `Required`/`StringLength` on the parameter, no manual key checks
+- [X] T037 [US2] Update `Create` in `src/LibraryManager.Api/Controllers/LoansController.cs` to `[FromIdempotencyKey] IdempotencyKey idempotencyKey`, pass `idempotencyKey.Value`, no `Required`/`StringLength` on the parameter, no manual key checks
 - [X] T038 [US2] Update `src/LibraryManager.Api/Controllers/AuditEventsController.cs` to return `PagedResponse<AuditEventResponse>` (map from Application `PagedResult<AuditEventDto>`)
-- [ ] T039 [US2] Align existing missing-key assertions with ValidationProblemDetails in `tests/LibraryManager.IntegrationTests/Loans/CreateLoanTests.cs` and `tests/LibraryManager.IntegrationTests/Loans/IdempotencyTests.cs`
+- [X] T039 [US2] Align existing missing-key assertions with ValidationProblemDetails in `tests/LibraryManager.IntegrationTests/Loans/CreateLoanTests.cs` and `tests/LibraryManager.IntegrationTests/Loans/IdempotencyTests.cs`
 
 **Checkpoint**: HTTP transport validation is independently testable
 

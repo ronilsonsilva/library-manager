@@ -1,5 +1,6 @@
 using LibraryManager.Api.Errors;
 using LibraryManager.Api.Health;
+using LibraryManager.Api.Localization;
 using LibraryManager.Api.Middleware;
 using LibraryManager.Api.OpenApi;
 using LibraryManager.Api.Persistence;
@@ -23,7 +24,9 @@ using LibraryManager.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddControllers();
+builder.Services.AddLibraryManagerLocalization();
+builder.Services.AddControllers()
+    .AddLibraryManagerDataAnnotationsLocalization();
 builder.Services.AddExceptionHandler<ApiExceptionHandler>();
 builder.Services.AddProblemDetails();
 builder.Services.AddLibraryManagerAuthentication(builder.Configuration, builder.Environment);
@@ -52,6 +55,7 @@ var app = builder.Build();
 await app.ApplyMigrationsIfConfiguredAsync();
 
 app.UseMiddleware<CorrelationIdMiddleware>();
+app.UseLibraryManagerRequestLocalization();
 app.UseExceptionHandler();
 
 if (app.Environment.IsDevelopment())

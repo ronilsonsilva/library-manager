@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Validation_IdempotencyKey_Required" xml:space="preserve">
+    <value>Idempotency-Key is required.</value>
+  </data>
+  <data name="Validation_IdempotencyKey_MaxLength" xml:space="preserve">
+    <value>Idempotency-Key must be at most 128 characters.</value>
+  </data>
+  <data name="Validation_Title_Required" xml:space="preserve">
+    <value>Title is required.</value>
+  </data>
+  <data name="Validation_Isbn_Required" xml:space="preserve">
+    <value>ISBN is required.</value>
+  </data>
+  <data name="Validation_TotalCopies_Range" xml:space="preserve">
+    <value>TotalCopies must be at least 1.</value>
+  </data>
+  <data name="Error_Book_NotFound" xml:space="preserve">
+    <value>Book was not found.</value>
+  </data>
+  <data name="Error_Book_Unavailable" xml:space="preserve">
+    <value>Book is unavailable.</value>
+  </data>
+  <data name="Error_Loan_InvalidState" xml:space="preserve">
+    <value>Loan is not in a valid state for this operation.</value>
+  </data>
+  <data name="Error_Idempotency_Conflict" xml:space="preserve">
+    <value>Idempotency-Key payload does not match the original request.</value>
+  </data>
+  <data name="Problem_Validation_Title" xml:space="preserve">
+    <value>One or more validation errors occurred.</value>
+  </data>
+  <data name="Problem_Unexpected_Title" xml:space="preserve">
+    <value>An unexpected error occurred.</value>
+  </data>
+</root>

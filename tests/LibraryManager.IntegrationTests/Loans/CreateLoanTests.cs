@@ -132,6 +132,9 @@ public sealed class CreateLoanTests : IAsyncLifetime
         var response = await _librarianA.PostAsJsonAsync("/loans", new { bookId = book.Id, userId = user.Id });
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        var problem = await response.Content.ReadFromJsonAsync<ValidationProblemDetails>(JsonOptions);
+        Assert.NotNull(problem);
+        Assert.Contains("Validation_IdempotencyKey_Required", problem.Errors.Keys);
         Assert.Equal(0, await CountLoansForBookAsync(book.Id));
     }
 

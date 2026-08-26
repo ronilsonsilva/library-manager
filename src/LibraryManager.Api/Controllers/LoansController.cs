@@ -1,10 +1,11 @@
+using LibraryManager.Api.Contracts.Common;
 using LibraryManager.Api.Contracts.Loans.Requests;
 using LibraryManager.Api.Contracts.Loans.Responses;
+using LibraryManager.Api.ModelBinding;
 using LibraryManager.Api.Security;
 using LibraryManager.Application.Loans.CancelLoan;
 using LibraryManager.Application.Loans.CreateLoan;
 using LibraryManager.Application.Loans.ReturnLoan;
-using LibraryManager.Domain;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -20,22 +21,15 @@ public sealed class LoansController(
     [HttpPost]
     [Authorize(Policy = LibrarianPolicy.Name)]
     public async Task<ActionResult<LoanResponse>> Create(
-        [FromHeader(Name = "Idempotency-Key")] string? idempotencyKey,
+        [FromIdempotencyKey] IdempotencyKey idempotencyKey,
         [FromBody] CreateLoanRequest request,
         CancellationToken cancellationToken)
     {
-        if (string.IsNullOrWhiteSpace(idempotencyKey))
-        {
-            throw new DomainException("Idempotency-Key is required.");
-        }
-
-        var key = idempotencyKey.Trim();
-        if (key.Length > 128)
-        {
-            throw new DomainException("Idempotency-Key must be at most 128 characters.");
-        }
-
-        var loan = await createLoan.ExecuteAsync(request.BookId, request.UserId, key, cancellationToken);
+        var loan = await createLoan.ExecuteAsync(
+            request.BookId,
+            request.UserId,
+            idempotencyKey.Value,
+            cancellationToken);
         return StatusCode(StatusCodes.Status201Created, LoanResponse.From(loan));
     }
 

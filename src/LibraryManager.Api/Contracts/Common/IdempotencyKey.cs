@@ -2,6 +2,8 @@ namespace LibraryManager.Api.Contracts.Common;
 
 public sealed class IdempotencyKey
 {
+    public const string HeaderName = "Idempotency-Key";
+
     public const int MaxLength = 128;
 
     public IdempotencyKey(string value)
