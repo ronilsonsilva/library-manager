@@ -54,14 +54,14 @@ public sealed class DockerStackTests
     }
 
     [Fact]
-    public void OpenTelemetry_instruments_stackexchange_redis()
+    public void OpenTelemetry_does_not_use_prerelease_stackexchange_redis_instrumentation()
     {
         var telemetry = File.ReadAllText(RepoPath(
             "src", "LibraryManager.Api", "Telemetry", "OpenTelemetryConfiguration.cs"));
         var project = File.ReadAllText(RepoPath("src", "LibraryManager.Api", "LibraryManager.Api.csproj"));
 
-        Assert.Contains("AddRedisInstrumentation", telemetry, StringComparison.Ordinal);
-        Assert.Contains("OpenTelemetry.Instrumentation.StackExchangeRedis", project, StringComparison.Ordinal);
+        Assert.DoesNotContain("AddRedisInstrumentation", telemetry, StringComparison.Ordinal);
+        Assert.DoesNotContain("OpenTelemetry.Instrumentation.StackExchangeRedis", project, StringComparison.Ordinal);
     }
 
     [Fact]

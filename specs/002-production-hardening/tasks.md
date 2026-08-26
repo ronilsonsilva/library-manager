@@ -65,16 +65,16 @@ description: "Task list for production-hardening implementation"
 
 > Write these tests FIRST and ensure they FAIL before implementation
 
-- [ ] T015 [P] [US1] Add failing file assertion for `NuGetAudit=true`, `NuGetAuditMode=all`, and NU1903/NU1904 as errors in `tests/LibraryManager.IntegrationTests/Architecture/NuGetAuditPropsTests.cs` reading `Directory.Build.props`
-- [ ] T016 [P] [US1] Change `OpenTelemetry.Instrumentation.StackExchangeRedis` assertion to require the package **absent** in `tests/LibraryManager.IntegrationTests/Security/DockerStackTests.cs`; add failing `ActivityListener` tests that cache Get/Set/Remove start `LibraryManager` activities named `availability_cache.get`, `availability_cache.set`, and `availability_cache.remove` in `tests/LibraryManager.UnitTests/Infrastructure/RedisCacheActivityTests.cs`
+- [X] T015 [P] [US1] Add failing file assertion for `NuGetAudit=true`, `NuGetAuditMode=all`, and NU1903/NU1904 as errors in `tests/LibraryManager.IntegrationTests/Architecture/NuGetAuditPropsTests.cs` reading `Directory.Build.props`
+- [X] T016 [P] [US1] Change `OpenTelemetry.Instrumentation.StackExchangeRedis` assertion to require the package **absent** in `tests/LibraryManager.IntegrationTests/Security/DockerStackTests.cs`; add failing `ActivityListener` tests that cache Get/Set/Remove start `LibraryManager` activities named `availability_cache.get`, `availability_cache.set`, and `availability_cache.remove` in `tests/LibraryManager.UnitTests/Infrastructure/RedisCacheActivityTests.cs`
 
 ### Implementation for User Story 1
 
-- [ ] T017 [US1] Set `NuGetAudit=true`, `NuGetAuditMode=all`, and remove `NU1903;NU1904` from `WarningsNotAsErrors` in `Directory.Build.props` (do not globally disable auditing)
-- [ ] T018 [US1] Remove `OpenTelemetry.Instrumentation.StackExchangeRedis` and `AddRedisInstrumentation` from `src/LibraryManager.Api/LibraryManager.Api.csproj` and `src/LibraryManager.Api/Telemetry/OpenTelemetryConfiguration.cs`
-- [ ] T019 [US1] Start `LibraryManager` `ActivitySource` activities named `availability_cache.get`, `availability_cache.set`, and `availability_cache.remove` for cache Get/Set/Remove in `src/LibraryManager.Infrastructure/Caching/RedisAvailabilityCache.cs` (make T016 activity tests pass)
-- [ ] T020 [US1] Upgrade compatible OpenTelemetry stable packages if required in `src/LibraryManager.Api/LibraryManager.Api.csproj`
-- [ ] T021 [US1] Remediate remaining high/critical findings by upgrading direct parent packages listed by `dotnet nuget why` (edit the owning `*.csproj` under `src/` or `tests/`; no `NoWarn` for NU1903/NU1904)
+- [X] T017 [US1] Set `NuGetAudit=true`, `NuGetAuditMode=all`, and remove `NU1903;NU1904` from `WarningsNotAsErrors` in `Directory.Build.props` (do not globally disable auditing)
+- [X] T018 [US1] Remove `OpenTelemetry.Instrumentation.StackExchangeRedis` and `AddRedisInstrumentation` from `src/LibraryManager.Api/LibraryManager.Api.csproj` and `src/LibraryManager.Api/Telemetry/OpenTelemetryConfiguration.cs`
+- [X] T019 [US1] Start `LibraryManager` `ActivitySource` activities named `availability_cache.get`, `availability_cache.set`, and `availability_cache.remove` for cache Get/Set/Remove in `src/LibraryManager.Infrastructure/Caching/RedisAvailabilityCache.cs` (make T016 activity tests pass)
+- [X] T020 [US1] Upgrade compatible OpenTelemetry stable packages if required in `src/LibraryManager.Api/LibraryManager.Api.csproj`
+- [X] T021 [US1] Remediate remaining high/critical findings by upgrading direct parent packages listed by `dotnet nuget why` (edit the owning `*.csproj` under `src/` or `tests/`; no `NoWarn` for NU1903/NU1904)
 
 **Checkpoint**: Dependency audit policy is independently verifiable
 

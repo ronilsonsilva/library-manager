@@ -7,13 +7,9 @@ namespace LibraryManager.IntegrationTests.Infrastructure;
 
 public sealed class DatabaseFixture : IAsyncLifetime
 {
-    public PostgreSqlContainer Postgres { get; } = new PostgreSqlBuilder()
-        .WithImage("postgres:16-alpine")
-        .Build();
+    public PostgreSqlContainer Postgres { get; } = new PostgreSqlBuilder("postgres:16-alpine").Build();
 
-    public RedisContainer Redis { get; } = new RedisBuilder()
-        .WithImage("redis:7-alpine")
-        .Build();
+    public RedisContainer Redis { get; } = new RedisBuilder("redis:7-alpine").Build();
 
     public string PostgresConnectionString => Postgres.GetConnectionString();
 

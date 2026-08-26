@@ -1,5 +1,6 @@
 using System.Text.Json;
 using LibraryManager.Application.Abstractions;
+using LibraryManager.Application.Telemetry;
 using Microsoft.Extensions.Configuration;
 using StackExchange.Redis;
 
@@ -50,30 +51,39 @@ public sealed class RedisAvailabilityCache : IAvailabilityCache
 
     public async Task<BookAvailabilityCacheItem?> GetAsync(Guid bookId, CancellationToken cancellationToken)
     {
-        cancellationToken.ThrowIfCancellationRequested();
-        var value = await _redis.Value.GetDatabase().StringGetAsync(Key(bookId)).WaitAsync(cancellationToken);
-        if (value.IsNullOrEmpty)
+        using (LibraryManagerInstrumentation.ActivitySource.StartActivity("availability_cache.get"))
         {
-            return null;
-        }
+            cancellationToken.ThrowIfCancellationRequested();
+            var value = await _redis.Value.GetDatabase().StringGetAsync(Key(bookId)).WaitAsync(cancellationToken);
+            if (value.IsNullOrEmpty)
+            {
+                return null;
+            }
 
-        return JsonSerializer.Deserialize<BookAvailabilityCacheItem>((string)value!, JsonOptions);
+            return JsonSerializer.Deserialize<BookAvailabilityCacheItem>((string)value!, JsonOptions);
+        }
     }
 
     public async Task SetAsync(BookAvailabilityCacheItem item, CancellationToken cancellationToken)
     {
-        cancellationToken.ThrowIfCancellationRequested();
-        var json = JsonSerializer.Serialize(item, JsonOptions);
-        await _redis.Value.GetDatabase().StringSetAsync(
-            Key(item.BookId),
-            json,
-            TimeSpan.FromSeconds(TimeToLiveSeconds)).WaitAsync(cancellationToken);
+        using (LibraryManagerInstrumentation.ActivitySource.StartActivity("availability_cache.set"))
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            var json = JsonSerializer.Serialize(item, JsonOptions);
+            await _redis.Value.GetDatabase().StringSetAsync(
+                Key(item.BookId),
+                json,
+                TimeSpan.FromSeconds(TimeToLiveSeconds)).WaitAsync(cancellationToken);
+        }
     }
 
     public async Task RemoveAsync(Guid bookId, CancellationToken cancellationToken)
     {
-        cancellationToken.ThrowIfCancellationRequested();
-        await _redis.Value.GetDatabase().KeyDeleteAsync(Key(bookId)).WaitAsync(cancellationToken);
+        using (LibraryManagerInstrumentation.ActivitySource.StartActivity("availability_cache.remove"))
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            await _redis.Value.GetDatabase().KeyDeleteAsync(Key(bookId)).WaitAsync(cancellationToken);
+        }
     }
 
     public static string Key(Guid bookId) => $"library-manager:books:{bookId}:availability";
