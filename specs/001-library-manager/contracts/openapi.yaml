@@ -1,0 +1,506 @@
+openapi: 3.0.3
+info:
+  title: Library Manager API
+  version: 1.0.0
+  description: >
+    Catalog, User, and loan HTTP contract. The API is an OAuth 2.0 / OpenID Connect
+    resource server. It does not issue access tokens. HTTP 409 is used only for
+    Idempotency-Key canonical mismatch on POST /loans. HTTP 422 is used for
+    business-rule failures. HTTP 404 is used when a named book, User, or loan
+    does not exist (including POST /loans unknown UserId or BookId). Successful
+    POST /loans and same-hash replays return 201. GET /audit-events requires the
+    Librarian policy. List endpoints use page default 1 and pageSize default 20
+    (maximum 100). DueAtUtc on create is BorrowedAtUtc.AddDays(14) in UTC.
+servers:
+  - url: http://localhost:8080
+    description: Local Docker Compose
+tags:
+  - name: Books
+  - name: Users
+  - name: Loans
+  - name: Audit
+  - name: Health
+paths:
+  /books:
+    post:
+      tags: [Books]
+      operationId: createBook
+      summary: Create a catalog book
+      security: [{ bearerAuth: [] }]
+      x-require-policy: Librarian
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateBookRequest' }
+      responses:
+        '201':
+          description: Created
+          headers:
+            X-Correlation-ID: { $ref: '#/components/headers/X-Correlation-ID' }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/BookResponse' }
+        '400': { $ref: '#/components/responses/Problem' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '422':
+          description: Duplicate ISBN
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/ProblemDetails' }
+    get:
+      tags: [Books]
+      operationId: listBooks
+      summary: List books (paginated)
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+        - name: isActive
+          in: query
+          schema: { type: boolean }
+      responses:
+        '200':
+          description: Page of books
+          headers:
+            X-Correlation-ID: { $ref: '#/components/headers/X-Correlation-ID' }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/BookListResponse' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+  /books/{id}:
+    get:
+      tags: [Books]
+      operationId: getBook
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Book
+          headers:
+            X-Correlation-ID: { $ref: '#/components/headers/X-Correlation-ID' }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/BookResponse' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+    put:
+      tags: [Books]
+      operationId: updateBook
+      security: [{ bearerAuth: [] }]
+      x-require-policy: Librarian
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UpdateBookRequest' }
+      responses:
+        '200':
+          description: Updated
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/BookResponse' }
+        '400': { $ref: '#/components/responses/Problem' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '422':
+          description: TotalCopies below borrowed copies
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/ProblemDetails' }
+    delete:
+      tags: [Books]
+      operationId: deactivateBook
+      summary: Logical deactivation (not a hard delete)
+      security: [{ bearerAuth: [] }]
+      x-require-policy: Librarian
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '204':
+          description: Deactivated
+          headers:
+            X-Correlation-ID: { $ref: '#/components/headers/X-Correlation-ID' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+  /books/{id}/availability:
+    get:
+      tags: [Books]
+      operationId: getBookAvailability
+      summary: Cache-aside availability view; not used for loan decisions
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Availability
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/BookAvailabilityResponse' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+  /books/{id}/loans:
+    get:
+      tags: [Loans]
+      operationId: getBookLoanHistory
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/Id'
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200':
+          description: Loan history for the book
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/LoanListResponse' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+  /users:
+    post:
+      tags: [Users]
+      operationId: createUser
+      security: [{ bearerAuth: [] }]
+      x-require-policy: Librarian
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateUserRequest' }
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/UserResponse' }
+        '400': { $ref: '#/components/responses/Problem' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '422':
+          description: Duplicate email
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/ProblemDetails' }
+  /users/{id}/loans:
+    get:
+      tags: [Users]
+      operationId: getUserLoans
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - $ref: '#/components/parameters/Id'
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200':
+          description: Full history including Returned and Cancelled
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/LoanListResponse' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404': { $ref: '#/components/responses/NotFound' }
+  /loans:
+    post:
+      tags: [Loans]
+      operationId: createLoan
+      security: [{ bearerAuth: [] }]
+      x-require-policy: Librarian
+      parameters:
+        - name: Idempotency-Key
+          in: header
+          required: true
+          schema:
+            type: string
+            maxLength: 128
+            minLength: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateLoanRequest' }
+      responses:
+        '201':
+          description: Loan created, or idempotent replay of a prior successful create (same stored body)
+          headers:
+            X-Correlation-ID: { $ref: '#/components/headers/X-Correlation-ID' }
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/LoanResponse' }
+        '400':
+          description: Missing Idempotency-Key or invalid body
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/ProblemDetails' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404':
+          description: Unknown UserId or BookId
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/ProblemDetails' }
+        '409':
+          description: Idempotency-Key reused with a different canonical request
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/ProblemDetails' }
+        '422':
+          description: Book inactive, no copies, or User already has Active loan for the book
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/ProblemDetails' }
+  /loans/{id}/return:
+    post:
+      tags: [Loans]
+      operationId: returnLoan
+      security: [{ bearerAuth: [] }]
+      x-require-policy: Librarian
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Returned
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/LoanResponse' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '422':
+          description: Loan is not Active
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/ProblemDetails' }
+  /loans/{id}/cancel:
+    post:
+      tags: [Loans]
+      operationId: cancelLoan
+      security: [{ bearerAuth: [] }]
+      x-require-policy: Librarian
+      parameters:
+        - $ref: '#/components/parameters/Id'
+      responses:
+        '200':
+          description: Cancelled
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/LoanResponse' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+        '422':
+          description: Loan is not Active
+          content:
+            application/problem+json:
+              schema: { $ref: '#/components/schemas/ProblemDetails' }
+  /audit-events:
+    get:
+      tags: [Audit]
+      operationId: getAuditEvents
+      summary: List AuditEvents (Librarian policy)
+      security: [{ bearerAuth: [] }]
+      x-require-policy: Librarian
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+        - name: entityType
+          in: query
+          schema: { type: string }
+        - name: entityId
+          in: query
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Audit page
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AuditEventListResponse' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+  /health/live:
+    get:
+      tags: [Health]
+      operationId: live
+      security: []
+      responses:
+        '200':
+          description: Process is running
+  /health/ready:
+    get:
+      tags: [Health]
+      operationId: ready
+      security: []
+      responses:
+        '200':
+          description: PostgreSQL and Redis are reachable
+        '503':
+          description: Dependency not ready
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Access token from the external OpenID Connect provider. Audience library-manager-api.
+  headers:
+    X-Correlation-ID:
+      schema: { type: string }
+      description: Echoed or generated correlation identifier
+  parameters:
+    Id:
+      name: id
+      in: path
+      required: true
+      schema: { type: string, format: uuid }
+    Page:
+      name: page
+      in: query
+      schema: { type: integer, minimum: 1, default: 1 }
+    PageSize:
+      name: pageSize
+      in: query
+      schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
+  responses:
+    Problem:
+      description: Validation or domain problem
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/ProblemDetails' }
+    Unauthorized:
+      description: Missing or invalid access token
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/ProblemDetails' }
+    Forbidden:
+      description: Authenticated caller lacks librarian role
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/ProblemDetails' }
+    NotFound:
+      description: Resource not found
+      content:
+        application/problem+json:
+          schema: { $ref: '#/components/schemas/ProblemDetails' }
+  schemas:
+    ProblemDetails:
+      type: object
+      properties:
+        type: { type: string }
+        title: { type: string }
+        status: { type: integer }
+        detail: { type: string }
+        instance: { type: string }
+        traceId: { type: string }
+        correlationId: { type: string }
+    CreateBookRequest:
+      type: object
+      required: [title, isbn, author, totalCopies]
+      properties:
+        title: { type: string, maxLength: 500 }
+        isbn: { type: string, maxLength: 32 }
+        author: { type: string, maxLength: 500 }
+        totalCopies: { type: integer, minimum: 1 }
+    UpdateBookRequest:
+      type: object
+      required: [title, author, totalCopies]
+      properties:
+        title: { type: string, maxLength: 500 }
+        author: { type: string, maxLength: 500 }
+        totalCopies: { type: integer, minimum: 1 }
+    BookResponse:
+      type: object
+      required: [id, title, isbn, author, totalCopies, availableCopies, isActive]
+      properties:
+        id: { type: string, format: uuid }
+        title: { type: string }
+        isbn: { type: string }
+        author: { type: string }
+        totalCopies: { type: integer }
+        availableCopies: { type: integer }
+        isActive: { type: boolean }
+        createdAtUtc: { type: string, format: date-time }
+        updatedAtUtc: { type: string, format: date-time }
+    BookListResponse:
+      type: object
+      properties:
+        items:
+          type: array
+          items: { $ref: '#/components/schemas/BookResponse' }
+        page: { type: integer }
+        pageSize: { type: integer }
+        totalCount: { type: integer }
+    BookAvailabilityResponse:
+      type: object
+      required: [bookId, availableCopies, totalCopies, isActive]
+      properties:
+        bookId: { type: string, format: uuid }
+        availableCopies: { type: integer }
+        totalCopies: { type: integer }
+        isActive: { type: boolean }
+    CreateUserRequest:
+      type: object
+      required: [name, email]
+      properties:
+        name: { type: string, maxLength: 200 }
+        email: { type: string, format: email, maxLength: 320 }
+    UserResponse:
+      type: object
+      required: [id, name, email]
+      properties:
+        id: { type: string, format: uuid }
+        name: { type: string }
+        email: { type: string }
+        createdAtUtc: { type: string, format: date-time }
+    CreateLoanRequest:
+      type: object
+      required: [bookId, userId]
+      properties:
+        bookId: { type: string, format: uuid }
+        userId: { type: string, format: uuid }
+    LoanResponse:
+      type: object
+      required: [id, bookId, userId, status, borrowedAtUtc, dueAtUtc]
+      properties:
+        id: { type: string, format: uuid }
+        bookId: { type: string, format: uuid }
+        userId: { type: string, format: uuid }
+        status:
+          type: string
+          enum: [Active, Returned, Cancelled]
+        borrowedAtUtc: { type: string, format: date-time }
+        dueAtUtc: { type: string, format: date-time }
+        returnedAtUtc: { type: string, format: date-time, nullable: true }
+        cancelledAtUtc: { type: string, format: date-time, nullable: true }
+    LoanListResponse:
+      type: object
+      properties:
+        items:
+          type: array
+          items: { $ref: '#/components/schemas/LoanResponse' }
+        page: { type: integer }
+        pageSize: { type: integer }
+        totalCount: { type: integer }
+    AuditEventResponse:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        entityType: { type: string }
+        entityId: { type: string, format: uuid }
+        action: { type: string }
+        actorId: { type: string }
+        occurredAtUtc: { type: string, format: date-time }
+        correlationId: { type: string }
+        dataJson: { type: object, additionalProperties: true }
+    AuditEventListResponse:
+      type: object
+      properties:
+        items:
+          type: array
+          items: { $ref: '#/components/schemas/AuditEventResponse' }
+        page: { type: integer }
+        pageSize: { type: integer }
+        totalCount: { type: integer }
