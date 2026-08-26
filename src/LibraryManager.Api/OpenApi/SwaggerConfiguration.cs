@@ -45,6 +45,21 @@ public static class SwaggerConfiguration
                     }
                 }
             });
+
+            options.AddSecurityRequirement(new OpenApiSecurityRequirement
+            {
+                {
+                    new OpenApiSecurityScheme
+                    {
+                        Reference = new OpenApiReference
+                        {
+                            Type = ReferenceType.SecurityScheme,
+                            Id = OAuth2SchemeId
+                        }
+                    },
+                    ["openid", "profile"]
+                }
+            });
         });
 
         return services;
@@ -58,6 +73,7 @@ public static class SwaggerConfiguration
             options.SwaggerEndpoint("/swagger/v1/swagger.json", "Library Manager API");
             options.OAuthClientId(OAuthClientId);
             options.OAuthUsePkce();
+            options.OAuth2RedirectUrl("http://localhost:8080/swagger/oauth2-redirect.html");
             options.OAuthScopes("openid", "profile");
             options.OAuthAppName("Library Manager");
         });

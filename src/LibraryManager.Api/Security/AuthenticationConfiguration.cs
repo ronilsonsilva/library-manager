@@ -29,12 +29,26 @@ public static class AuthenticationConfiguration
             return services;
         }
 
-        var authority = configuration["Authentication:Authority"];
+        var authority = configuration["Authentication:Authority"]?.TrimEnd('/');
         var audience = configuration["Authentication:Audience"];
+        var metadataAddress = configuration["Authentication:MetadataAddress"]?.Trim();
         if (string.IsNullOrWhiteSpace(authority) || string.IsNullOrWhiteSpace(audience))
         {
             throw new InvalidOperationException(
                 "Authentication:Authority and Authentication:Audience must be configured.");
+        }
+
+        var validIssuers = new HashSet<string>(StringComparer.Ordinal) { authority };
+        var extraIssuers = configuration.GetSection("Authentication:ValidIssuers").Get<string[]>();
+        if (extraIssuers is not null)
+        {
+            foreach (var issuer in extraIssuers)
+            {
+                if (!string.IsNullOrWhiteSpace(issuer))
+                {
+                    validIssuers.Add(issuer.Trim().TrimEnd('/'));
+                }
+            }
         }
 
         services
@@ -43,7 +57,15 @@ public static class AuthenticationConfiguration
             {
                 options.Authority = authority;
                 options.Audience = audience;
-                options.RequireHttpsMetadata = !environment.IsDevelopment();
+                if (!string.IsNullOrWhiteSpace(metadataAddress))
+                {
+                    options.MetadataAddress = metadataAddress;
+                }
+
+                var metadataUrl = string.IsNullOrWhiteSpace(metadataAddress) ? authority : metadataAddress;
+                options.RequireHttpsMetadata =
+                    !environment.IsDevelopment()
+                    && !metadataUrl.StartsWith("http://", StringComparison.OrdinalIgnoreCase);
                 options.MapInboundClaims = false;
                 options.TokenValidationParameters = new TokenValidationParameters
                 {
@@ -51,6 +73,7 @@ public static class AuthenticationConfiguration
                     ValidateAudience = true,
                     ValidateLifetime = true,
                     ValidateIssuerSigningKey = true,
+                    ValidIssuers = validIssuers.ToArray(),
                     ValidAudience = audience,
                     NameClaimType = "sub",
                     RoleClaimType = "roles"

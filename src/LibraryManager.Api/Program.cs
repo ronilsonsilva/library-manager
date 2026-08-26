@@ -2,6 +2,7 @@ using LibraryManager.Api.Errors;
 using LibraryManager.Api.Health;
 using LibraryManager.Api.Middleware;
 using LibraryManager.Api.OpenApi;
+using LibraryManager.Api.Persistence;
 using LibraryManager.Api.Security;
 using LibraryManager.Api.Telemetry;
 using LibraryManager.Application.Abstractions;
@@ -47,6 +48,8 @@ builder.Services.AddScoped<ReturnLoanUseCase>();
 builder.Services.AddScoped<CancelLoanUseCase>();
 
 var app = builder.Build();
+
+await app.ApplyMigrationsIfConfiguredAsync();
 
 app.UseMiddleware<CorrelationIdMiddleware>();
 app.UseExceptionHandler();

@@ -15,6 +15,9 @@
 **/specs
 **/.specify
 **/.cursor
+**/tests
+**/deploy
+**/infrastructure
 .git
 .gitignore
 .dockerignore

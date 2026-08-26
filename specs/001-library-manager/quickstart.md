@@ -34,7 +34,7 @@ Expected: HTTP 200 without an access token.
 1. Open http://localhost:8080/swagger
 2. Authorize with client `library-manager-swagger` (Authorization Code + PKCE)
 3. Keycloak realm `library-manager`, audience `library-manager-api`
-4. Sign in as the documented local librarian user
+4. Sign in as `librarian` / `librarian-dev-only` (local Compose only; see README)
 5. Redirect URI must be `http://localhost:8080/swagger/oauth2-redirect.html` only
 
 The API never accepts username/password to mint JWTs.
@@ -46,8 +46,8 @@ Token script (confidential-resource validation, not an API login):
 curl -sS -X POST "http://localhost:8081/realms/library-manager/protocol/openid-connect/token" \
   -d "client_id=library-manager-swagger" \
   -d "grant_type=password" \
-  -d "username=<local-librarian>" \
-  -d "password=<local-dev-password>"
+  -d "username=librarian" \
+  -d "password=librarian-dev-only"
 ```
 
 Use the access token as `Authorization: Bearer`. Mutations without a token must be HTTP 401. Token without `librarian` in the flat `roles` claim must be HTTP 403.
