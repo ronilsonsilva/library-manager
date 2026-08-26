@@ -11,4 +11,6 @@ public static class AuditMetadata
     public const string BookDeactivated = "BookDeactivated";
     public const string UserCreated = "UserCreated";
     public const string LoanCreated = "LoanCreated";
+    public const string LoanReturned = "LoanReturned";
+    public const string LoanCancelled = "LoanCancelled";
 }

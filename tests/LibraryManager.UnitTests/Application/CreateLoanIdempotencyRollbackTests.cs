@@ -221,6 +221,9 @@ public sealed class CreateLoanIdempotencyRollbackTests
             return Task.FromResult(bookId == Book.Id ? 1 : 0);
         }
 
+        public Task<int> TryRestoreAvailabilityAsync(Guid bookId, CancellationToken cancellationToken) =>
+            Task.FromResult(bookId == Book.Id ? 1 : 0);
+
         public Task<bool> TryUpdateTotalCopiesAsync(
             Guid bookId,
             int newTotalCopies,

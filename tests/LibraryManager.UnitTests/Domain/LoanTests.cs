@@ -41,4 +41,56 @@ public sealed class LoanTests
 
         Assert.Contains("UserId", exception.Message, StringComparison.Ordinal);
     }
+
+    [Fact]
+    public void MarkReturned_sets_returned_status_and_timestamp()
+    {
+        var now = DateTime.UtcNow;
+        var loan = Loan.Create(Guid.NewGuid(), Guid.NewGuid(), now);
+
+        loan.MarkReturned(now.AddHours(1));
+
+        Assert.Equal(LoanStatus.Returned, loan.Status);
+        Assert.Equal(now.AddHours(1), loan.ReturnedAtUtc);
+        Assert.Null(loan.CancelledAtUtc);
+    }
+
+    [Fact]
+    public void MarkCancelled_sets_cancelled_status_and_timestamp()
+    {
+        var now = DateTime.UtcNow;
+        var loan = Loan.Create(Guid.NewGuid(), Guid.NewGuid(), now);
+
+        loan.MarkCancelled(now.AddHours(1));
+
+        Assert.Equal(LoanStatus.Cancelled, loan.Status);
+        Assert.Equal(now.AddHours(1), loan.CancelledAtUtc);
+        Assert.Null(loan.ReturnedAtUtc);
+    }
+
+    [Fact]
+    public void MarkReturned_rejects_non_active_loan()
+    {
+        var now = DateTime.UtcNow;
+        var loan = Loan.Create(Guid.NewGuid(), Guid.NewGuid(), now);
+        loan.MarkReturned(now.AddHours(1));
+
+        var exception = Assert.Throws<DomainException>(() => loan.MarkReturned(now.AddHours(2)));
+
+        Assert.Contains("Active", exception.Message, StringComparison.Ordinal);
+        Assert.Equal(LoanStatus.Returned, loan.Status);
+    }
+
+    [Fact]
+    public void MarkCancelled_rejects_non_active_loan()
+    {
+        var now = DateTime.UtcNow;
+        var loan = Loan.Create(Guid.NewGuid(), Guid.NewGuid(), now);
+        loan.MarkCancelled(now.AddHours(1));
+
+        var exception = Assert.Throws<DomainException>(() => loan.MarkCancelled(now.AddHours(2)));
+
+        Assert.Contains("Active", exception.Message, StringComparison.Ordinal);
+        Assert.Equal(LoanStatus.Cancelled, loan.Status);
+    }
 }

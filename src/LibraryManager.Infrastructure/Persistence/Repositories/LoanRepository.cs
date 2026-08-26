@@ -35,7 +35,7 @@ public sealed class LoanRepository(LibraryDbContext db) : ILoanRepository
         CancellationToken cancellationToken)
     {
         var status = terminalStatus.ToString();
-        return terminalStatus switch
+        var rows = terminalStatus switch
         {
             LoanStatus.Returned => await db.Database.ExecuteSqlInterpolatedAsync(
                 $"""
@@ -57,6 +57,17 @@ public sealed class LoanRepository(LibraryDbContext db) : ILoanRepository
                 cancellationToken),
             _ => 0
         };
+
+        if (rows == 1)
+        {
+            var tracked = await db.Loans.FindAsync([loanId], cancellationToken);
+            if (tracked is not null)
+            {
+                await db.Entry(tracked).ReloadAsync(cancellationToken);
+            }
+        }
+
+        return rows;
     }
 
     private async Task<(IReadOnlyList<Loan> Items, int TotalCount)> ListAsync(

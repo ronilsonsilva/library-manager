@@ -68,6 +68,30 @@ public sealed class BookRepository(LibraryDbContext db, IClock clock) : IBookRep
         return rows;
     }
 
+    public async Task<int> TryRestoreAvailabilityAsync(Guid bookId, CancellationToken cancellationToken)
+    {
+        var rows = await db.Database.ExecuteSqlInterpolatedAsync(
+            $"""
+             UPDATE books
+             SET available_copies = available_copies + 1,
+                 updated_at_utc = {clock.UtcNow}
+             WHERE id = {bookId}
+               AND available_copies < total_copies
+             """,
+            cancellationToken);
+
+        if (rows == 1)
+        {
+            var tracked = await db.Books.FindAsync([bookId], cancellationToken);
+            if (tracked is not null)
+            {
+                await db.Entry(tracked).ReloadAsync(cancellationToken);
+            }
+        }
+
+        return rows;
+    }
+
     public async Task<bool> TryUpdateTotalCopiesAsync(
         Guid bookId,
         int newTotalCopies,

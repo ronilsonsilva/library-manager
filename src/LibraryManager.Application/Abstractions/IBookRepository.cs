@@ -18,5 +18,7 @@ public interface IBookRepository
 
     Task<int> TryReserveAvailabilityAsync(Guid bookId, CancellationToken cancellationToken);
 
+    Task<int> TryRestoreAvailabilityAsync(Guid bookId, CancellationToken cancellationToken);
+
     Task<bool> TryUpdateTotalCopiesAsync(Guid bookId, int newTotalCopies, CancellationToken cancellationToken);
 }

@@ -203,15 +203,15 @@ description: "Task list for Library Manager API implementation"
 
 ### Tests for User Story 6
 
-- [ ] T073 [P] [US6] Add failing tests for return, cancel, concurrent duplicate return, history, not-Active return/cancel HTTP 422, and unknown loan id HTTP 404 in `tests/LibraryManager.IntegrationTests/Loans/ReturnAndCancelTests.cs`
+- [X] T073 [P] [US6] Add failing tests for return, cancel, concurrent duplicate return, history, not-Active return/cancel HTTP 422, and unknown loan id HTTP 404 in `tests/LibraryManager.IntegrationTests/Loans/ReturnAndCancelTests.cs`
 
 ### Implementation for User Story 6
 
-- [ ] T074 [US6] Implement conditional Active→Returned on `LoanRepository` in `src/LibraryManager.Infrastructure/Persistence/Repositories/LoanRepository.cs`
-- [ ] T075 [US6] Implement conditional Active→Cancelled on `LoanRepository` in `src/LibraryManager.Infrastructure/Persistence/Repositories/LoanRepository.cs`
-- [ ] T076 [US6] Implement `ReturnLoanUseCase` with availability increment, AuditEvent, Outbox, post-commit cache invalidation in `src/LibraryManager.Application/Loans/ReturnLoan/ReturnLoanUseCase.cs`
-- [ ] T077 [US6] Implement `CancelLoanUseCase` similarly in `src/LibraryManager.Application/Loans/CancelLoan/CancelLoanUseCase.cs`
-- [ ] T078 [US6] Add POST `/loans/{id}/return` and POST `/loans/{id}/cancel` in `src/LibraryManager.Api/Controllers/LoansController.cs`
+- [X] T074 [US6] Implement conditional Active→Returned on `LoanRepository` in `src/LibraryManager.Infrastructure/Persistence/Repositories/LoanRepository.cs`
+- [X] T075 [US6] Implement conditional Active→Cancelled on `LoanRepository` in `src/LibraryManager.Infrastructure/Persistence/Repositories/LoanRepository.cs`
+- [X] T076 [US6] Implement `ReturnLoanUseCase` with availability increment, AuditEvent, Outbox, post-commit cache invalidation in `src/LibraryManager.Application/Loans/ReturnLoan/ReturnLoanUseCase.cs`
+- [X] T077 [US6] Implement `CancelLoanUseCase` similarly in `src/LibraryManager.Application/Loans/CancelLoan/CancelLoanUseCase.cs`
+- [X] T078 [US6] Add POST `/loans/{id}/return` and POST `/loans/{id}/cancel` in `src/LibraryManager.Api/Controllers/LoansController.cs`
 
 **Checkpoint**: Circulation and historical preservation work independently
 
