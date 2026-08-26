@@ -12,6 +12,7 @@ internal static class TestHostConfiguration
     {
         builder.UseEnvironment("Testing");
         builder.UseSetting("Testing:UseTestAuth", "true");
+        builder.UseSetting("Outbox:ProcessorEnabled", "false");
         builder.UseSetting("Authentication:Authority", "http://localhost:8081/realms/library-manager");
         builder.UseSetting("Authentication:Audience", "library-manager-api");
 
@@ -20,6 +21,7 @@ internal static class TestHostConfiguration
             config.AddInMemoryCollection(new Dictionary<string, string?>
             {
                 ["Testing:UseTestAuth"] = "true",
+                ["Outbox:ProcessorEnabled"] = "false",
                 ["Authentication:Authority"] = "http://localhost:8081/realms/library-manager",
                 ["Authentication:Audience"] = "library-manager-api"
             });

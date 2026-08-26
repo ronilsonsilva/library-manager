@@ -73,18 +73,7 @@ internal static class CompleteActiveLoan
             },
             cancellationToken);
 
-        try
-        {
-            await cache.RemoveAsync(completed.BookId, cancellationToken);
-        }
-        catch (Exception exception) when (exception is not OperationCanceledException)
-        {
-            logger.LogWarning(
-                exception,
-                "Failed to invalidate availability cache for book {BookId}",
-                completed.BookId);
-        }
-
+        await AvailabilityCacheInvalidation.TryRemoveAsync(cache, logger, completed.BookId, cancellationToken);
         return completed;
     }
 }

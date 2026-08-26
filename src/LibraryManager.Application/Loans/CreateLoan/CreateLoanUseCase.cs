@@ -103,17 +103,7 @@ public sealed class CreateLoanUseCase(
 
         if (outcome.Created)
         {
-            try
-            {
-                await cache.RemoveAsync(bookId, cancellationToken);
-            }
-            catch (Exception exception) when (exception is not OperationCanceledException)
-            {
-                logger.LogWarning(
-                    exception,
-                    "Failed to invalidate availability cache for book {BookId}",
-                    bookId);
-            }
+            await AvailabilityCacheInvalidation.TryRemoveAsync(cache, logger, bookId, cancellationToken);
         }
 
         return outcome.Loan;

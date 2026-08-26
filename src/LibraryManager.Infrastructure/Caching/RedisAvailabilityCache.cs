@@ -51,5 +51,5 @@ public sealed class RedisAvailabilityCache : IAvailabilityCache
         await _redis.Value.GetDatabase().KeyDeleteAsync(Key(bookId));
     }
 
-    internal static string Key(Guid bookId) => $"library-manager:books:{bookId}:availability";
+    public static string Key(Guid bookId) => $"library-manager:books:{bookId}:availability";
 }

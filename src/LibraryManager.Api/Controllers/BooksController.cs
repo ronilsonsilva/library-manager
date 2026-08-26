@@ -3,6 +3,7 @@ using LibraryManager.Application.Books;
 using LibraryManager.Application.Books.CreateBook;
 using LibraryManager.Application.Books.DeactivateBook;
 using LibraryManager.Application.Books.GetBook;
+using LibraryManager.Application.Books.GetBookAvailability;
 using LibraryManager.Application.Books.ListBooks;
 using LibraryManager.Application.Books.UpdateBook;
 using LibraryManager.Application.Common;
@@ -16,6 +17,7 @@ namespace LibraryManager.Api.Controllers;
 public sealed class BooksController(
     CreateBookUseCase createBook,
     GetBookUseCase getBook,
+    GetBookAvailabilityUseCase getBookAvailability,
     ListBooksUseCase listBooks,
     UpdateBookUseCase updateBook,
     DeactivateBookUseCase deactivateBook) : ControllerBase
@@ -54,6 +56,14 @@ public sealed class BooksController(
     {
         var book = await getBook.ExecuteAsync(id, cancellationToken);
         return Ok(book);
+    }
+
+    [HttpGet("{id:guid}/availability")]
+    [Authorize]
+    public async Task<ActionResult<BookAvailabilityDto>> GetAvailability(Guid id, CancellationToken cancellationToken)
+    {
+        var availability = await getBookAvailability.ExecuteAsync(id, cancellationToken);
+        return Ok(availability);
     }
 
     [HttpPut("{id:guid}")]

@@ -27,9 +27,15 @@ public static class DependencyInjection
         services.AddScoped<IAuditRepository, AuditRepository>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
         services.AddScoped<IOutboxWriter, OutboxWriter>();
+        services.AddScoped<OutboxClaimer>();
         services.AddScoped<IIdempotencyStore, IdempotencyStore>();
         services.AddSingleton<IAvailabilityCache, RedisAvailabilityCache>();
         services.AddSingleton<IClock, SystemClock>();
+        services.AddSingleton<OutboxProcessor>();
+        if (!string.Equals(configuration["Outbox:ProcessorEnabled"], "false", StringComparison.OrdinalIgnoreCase))
+        {
+            services.AddHostedService(sp => sp.GetRequiredService<OutboxProcessor>());
+        }
 
         return services;
     }

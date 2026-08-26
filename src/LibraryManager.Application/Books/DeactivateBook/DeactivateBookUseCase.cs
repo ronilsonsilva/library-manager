@@ -1,6 +1,7 @@
 using LibraryManager.Application.Abstractions;
 using LibraryManager.Application.Common;
 using LibraryManager.Domain;
+using Microsoft.Extensions.Logging;
 
 namespace LibraryManager.Application.Books.DeactivateBook;
 
@@ -9,9 +10,11 @@ public sealed class DeactivateBookUseCase(
     IAuditRepository audits,
     IOutboxWriter outbox,
     IUnitOfWork unitOfWork,
+    IAvailabilityCache cache,
     IClock clock,
     ICurrentUserContext currentUser,
-    ICorrelationContext correlation)
+    ICorrelationContext correlation,
+    ILogger<DeactivateBookUseCase> logger)
 {
     public async Task ExecuteAsync(Guid id, CancellationToken cancellationToken)
     {
@@ -43,5 +46,6 @@ public sealed class DeactivateBookUseCase(
             cancellationToken);
 
         await unitOfWork.SaveChangesAsync(cancellationToken);
+        await AvailabilityCacheInvalidation.TryRemoveAsync(cache, logger, book.Id, cancellationToken);
     }
 }

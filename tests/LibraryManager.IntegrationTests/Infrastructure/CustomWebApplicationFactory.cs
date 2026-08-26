@@ -12,8 +12,10 @@ public sealed class CustomWebApplicationFactory : WebApplicationFactory<Program>
     private readonly string _redisConnectionString;
     private readonly Action<IServiceCollection>? _configureTestServices;
 
-    public CustomWebApplicationFactory(DatabaseFixture fixture)
-        : this(fixture.PostgresConnectionString, fixture.RedisConnectionString)
+    public CustomWebApplicationFactory(
+        DatabaseFixture fixture,
+        Action<IServiceCollection>? configureTestServices = null)
+        : this(fixture.PostgresConnectionString, fixture.RedisConnectionString, configureTestServices)
     {
     }
 

@@ -245,13 +245,13 @@ description: "Task list for Library Manager API implementation"
 
 ### Tests for User Story 8
 
-- [ ] T083 [P] [US8] Add failing cache hit/miss and stale-cache loan tests in `tests/LibraryManager.IntegrationTests/Caching/AvailabilityCacheTests.cs`
+- [X] T083 [P] [US8] Add failing cache hit/miss and stale-cache loan tests in `tests/LibraryManager.IntegrationTests/Caching/AvailabilityCacheTests.cs`
 
 ### Implementation for User Story 8
 
-- [ ] T084 [US8] Implement `GetBookAvailabilityUseCase` cache-aside in `src/LibraryManager.Application/Books/GetBookAvailability/GetBookAvailabilityUseCase.cs`
-- [ ] T085 [US8] Add GET `/books/{id}/availability` in `src/LibraryManager.Api/Controllers/BooksController.cs`
-- [ ] T086 [US8] Ensure Create/Return/Cancel never call cache get for approval in `src/LibraryManager.Application/Loans/CreateLoan/CreateLoanUseCase.cs`, `ReturnLoanUseCase.cs`, and `CancelLoanUseCase.cs`; only `await` invalidate after commit
+- [X] T084 [US8] Implement `GetBookAvailabilityUseCase` cache-aside in `src/LibraryManager.Application/Books/GetBookAvailability/GetBookAvailabilityUseCase.cs`
+- [X] T085 [US8] Add GET `/books/{id}/availability` in `src/LibraryManager.Api/Controllers/BooksController.cs`
+- [X] T086 [US8] Ensure Create/Return/Cancel never call cache get for approval in `src/LibraryManager.Application/Loans/CreateLoan/CreateLoanUseCase.cs`, `ReturnLoanUseCase.cs`, and `CancelLoanUseCase.cs`; only `await` invalidate after commit
 - [ ] T087 [US8] Increment `library_manager_cache_invalidation_failures` on invalidate errors in `src/LibraryManager.Api/Telemetry/LibraryManagerMetrics.cs`
 
 **Checkpoint**: Cache is a hint only
@@ -266,14 +266,14 @@ description: "Task list for Library Manager API implementation"
 
 ### Tests for User Story 9
 
-- [ ] T088 [P] [US9] Add failing tests for Outbox persistence, processing, retry, expired lease, and multiple workers in `tests/LibraryManager.IntegrationTests/Outbox/OutboxProcessorTests.cs`
+- [X] T088 [P] [US9] Add failing tests for Outbox persistence, processing, retry, expired lease, and multiple workers in `tests/LibraryManager.IntegrationTests/Outbox/OutboxProcessorTests.cs`
 
 ### Implementation for User Story 9
 
-- [ ] T089 [US9] Implement claim SQL (`FOR UPDATE SKIP LOCKED`, `LockedBy`, `LockedUntilUtc`) in `src/LibraryManager.Infrastructure/Outbox/OutboxClaimer.cs`
-- [ ] T090 [US9] Implement `OutboxProcessor` as `BackgroundService` in `src/LibraryManager.Infrastructure/Outbox/OutboxProcessor.cs` (commit claim, then Redis, then ProcessedAtUtc or backoff)
-- [ ] T091 [US9] Register hosted `OutboxProcessor` in `src/LibraryManager.Infrastructure/DependencyInjection.cs`
-- [ ] T092 [US9] Make cache invalidation consumer idempotent in `src/LibraryManager.Infrastructure/Caching/RedisAvailabilityCache.cs`
+- [X] T089 [US9] Implement claim SQL (`FOR UPDATE SKIP LOCKED`, `LockedBy`, `LockedUntilUtc`) in `src/LibraryManager.Infrastructure/Outbox/OutboxClaimer.cs`
+- [X] T090 [US9] Implement `OutboxProcessor` as `BackgroundService` in `src/LibraryManager.Infrastructure/Outbox/OutboxProcessor.cs` (commit claim, then Redis, then ProcessedAtUtc or backoff)
+- [X] T091 [US9] Register hosted `OutboxProcessor` in `src/LibraryManager.Infrastructure/DependencyInjection.cs`
+- [X] T092 [US9] Make cache invalidation consumer idempotent in `src/LibraryManager.Infrastructure/Caching/RedisAvailabilityCache.cs`
 - [ ] T093 [US9] Record `library_manager_outbox_processed`, `library_manager_outbox_failures`, `library_manager_outbox_pending` in `src/LibraryManager.Api/Telemetry/LibraryManagerMetrics.cs`
 
 **Checkpoint**: Outbox is multi-replica safe and recoverable
