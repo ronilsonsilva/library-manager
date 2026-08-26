@@ -1,0 +1,12 @@
+# Replace Authentication__Authority with the cluster's external OIDC issuer.
+# Identity-provider workloads are out of scope for these manifests.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: library-manager-api
+  labels:
+    app.kubernetes.io/name: library-manager
+    app.kubernetes.io/component: api
+data:
+  Authentication__Authority: "https://idp.example.internal/realms/library-manager"
+  Authentication__Audience: "library-manager-api"

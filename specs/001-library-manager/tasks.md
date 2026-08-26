@@ -296,10 +296,10 @@ description: "Task list for Library Manager API implementation"
 - [X] T096 [US10] Add structured logging scopes with correlation id in `src/LibraryManager.Api/Middleware/CorrelationIdMiddleware.cs`
 - [X] T097 [US10] Create `Dockerfile` using `mcr.microsoft.com/dotnet/sdk:10.0` and `aspnet:10.0`
 - [X] T098 [US10] Create `docker-compose.yml` services `library-manager-api`, `postgres`, `redis`, `keycloak` (`quay.io/keycloak/keycloak:26.7.2`, `start-dev --import-realm`)
-- [ ] T099 [US10] Add `deploy/kubernetes/deployment.yaml` with CPU/memory requests and limits, liveness `/health/live`, readiness `/health/ready`
-- [ ] T100 [P] [US10] Add `deploy/kubernetes/service.yaml`
-- [ ] T101 [P] [US10] Add `deploy/kubernetes/configmap.yaml` for Authority/Audience (no Keycloak workload)
-- [ ] T102 [P] [US10] Add `deploy/kubernetes/secret.yaml` references for connection strings (placeholders only)
+- [X] T099 [US10] Add `deploy/kubernetes/deployment.yaml` with CPU/memory requests and limits, liveness `/health/live`, readiness `/health/ready`
+- [X] T100 [P] [US10] Add `deploy/kubernetes/service.yaml`
+- [X] T101 [P] [US10] Add `deploy/kubernetes/configmap.yaml` for Authority/Audience (no Keycloak workload)
+- [X] T102 [P] [US10] Add `deploy/kubernetes/secret.yaml` references for connection strings (placeholders only)
 - [X] T103 [US10] Write English `README.md` covering execution, authentication, migrations, tests, architecture, concurrency, idempotency, audit, caching, Outbox, observability, and why 2–11 replicas remain correct
 
 **Checkpoint**: Operators can run, observe, and explain the system

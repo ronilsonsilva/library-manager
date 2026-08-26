@@ -132,3 +132,27 @@ Structured console logs, `X-Correlation-ID`, `ActivitySource` name `LibraryManag
 API instances are stateless. PostgreSQL owns inventory and idempotency uniqueness. Audit and Outbox rows share the business transaction. Outbox workers coordinate with database leases, not in-process locks. Redis never authorizes a loan. Adding replicas cannot create extra last-copy loans, duplicate idempotent loans, or restore inventory twice.
 
 Kubernetes baseline manifests belong under `deploy/kubernetes/` and must not include a Keycloak workload. Local identity is Compose-only.
+
+## Kubernetes
+
+These manifests assume PostgreSQL, Redis, and an **external** OIDC provider already exist in the cluster. They do not deploy Keycloak.
+
+1. Set `Authentication__Authority` (issuer URL) and `Authentication__Audience` in `deploy/kubernetes/configmap.yaml`.
+2. Replace the `REPLACE_WITH_*` placeholders in `deploy/kubernetes/secret.yaml` in the cluster. Do not commit production passwords.
+3. Point `deployment.yaml` at a built `library-manager-api` image in your registry.
+4. Apply:
+
+```bash
+kubectl apply -f deploy/kubernetes/
+```
+
+Sample replica count is **2**. Scale between **2 and 11**:
+
+```bash
+kubectl scale deployment library-manager-api --replicas=2
+kubectl scale deployment library-manager-api --replicas=11
+```
+
+Probes: liveness `GET /health/live`, readiness `GET /health/ready`. CPU request `100m` / limit `500m`; memory request `256Mi` / limit `512Mi`.
+
+That range stays correct because API pods are stateless, PostgreSQL owns inventory and idempotency, Outbox uses database leases, and Redis never authorizes a loan. Apply EF Core migrations out of band; the Deployment does not run them on every replica.
