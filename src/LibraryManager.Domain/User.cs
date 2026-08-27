@@ -23,19 +23,21 @@ public sealed class User
 
     public static Result<User> Create(string name, string email, DateTime utcNow)
     {
-        var guard = new DomainGuard();
-        guard.Required(name, ErrorCodes.UserNameRequired, out var trimmedName);
-        guard.MaxLength(trimmedName, NameMaxLength, ErrorCodes.UserNameTooLong);
-        guard.Required(email, ErrorCodes.UserEmailRequired, out var trimmedEmail);
-        var normalizedEmail = trimmedEmail.ToLowerInvariant();
-        guard.MaxLength(normalizedEmail, EmailMaxLength, ErrorCodes.UserEmailTooLong);
-
-        return guard.ToResult(() => new User
-        {
-            Id = Guid.NewGuid(),
-            Name = trimmedName,
-            Email = normalizedEmail,
-            CreatedAtUtc = utcNow
-        });
+        return new DomainGuard()
+            .Required(name, ErrorCodes.UserNameRequired, NameMaxLength, ErrorCodes.UserNameTooLong, out var trimmedName)
+            .Required(
+                email,
+                ErrorCodes.UserEmailRequired,
+                EmailMaxLength,
+                ErrorCodes.UserEmailTooLong,
+                out var normalizedEmail,
+                static value => value.ToLowerInvariant())
+            .ToResult(() => new User
+            {
+                Id = Guid.NewGuid(),
+                Name = trimmedName,
+                Email = normalizedEmail,
+                CreatedAtUtc = utcNow
+            });
     }
 }

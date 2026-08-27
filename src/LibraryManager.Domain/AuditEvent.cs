@@ -38,24 +38,23 @@ public sealed class AuditEvent
         string correlationId,
         string dataJson)
     {
-        var guard = new DomainGuard();
-        guard.Required(entityType, ErrorCodes.AuditEntityTypeRequired, out var normalizedEntityType);
-        guard.RequiredGuid(entityId, ErrorCodes.AuditEntityIdRequired);
-        guard.Required(action, ErrorCodes.AuditActionRequired, out var normalizedAction);
-        guard.Required(actorId, ErrorCodes.AuditActorIdRequired, out var normalizedActorId);
-        guard.Required(correlationId, ErrorCodes.AuditCorrelationIdRequired, out var normalizedCorrelationId);
-        guard.Required(dataJson, ErrorCodes.AuditDataJsonRequired, out var normalizedDataJson);
-
-        return guard.ToResult(() => new AuditEvent
-        {
-            Id = Guid.NewGuid(),
-            EntityType = normalizedEntityType,
-            EntityId = entityId,
-            Action = normalizedAction,
-            ActorId = normalizedActorId,
-            OccurredAtUtc = occurredAtUtc,
-            CorrelationId = normalizedCorrelationId,
-            DataJson = normalizedDataJson
-        });
+        return new DomainGuard()
+            .Required(entityType, ErrorCodes.AuditEntityTypeRequired, out var normalizedEntityType)
+            .RequiredGuid(entityId, ErrorCodes.AuditEntityIdRequired)
+            .Required(action, ErrorCodes.AuditActionRequired, out var normalizedAction)
+            .Required(actorId, ErrorCodes.AuditActorIdRequired, out var normalizedActorId)
+            .Required(correlationId, ErrorCodes.AuditCorrelationIdRequired, out var normalizedCorrelationId)
+            .Required(dataJson, ErrorCodes.AuditDataJsonRequired, out var normalizedDataJson)
+            .ToResult(() => new AuditEvent
+            {
+                Id = Guid.NewGuid(),
+                EntityType = normalizedEntityType,
+                EntityId = entityId,
+                Action = normalizedAction,
+                ActorId = normalizedActorId,
+                OccurredAtUtc = occurredAtUtc,
+                CorrelationId = normalizedCorrelationId,
+                DataJson = normalizedDataJson
+            });
     }
 }

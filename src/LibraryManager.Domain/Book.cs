@@ -37,69 +37,50 @@ public sealed class Book
 
     public static Result<Book> Create(string title, string isbn, string author, int totalCopies, DateTime utcNow)
     {
-        var guard = new DomainGuard();
-        guard.Required(title, ErrorCodes.BookTitleRequired, out var normalizedTitle);
-        guard.MaxLength(normalizedTitle, TitleMaxLength, ErrorCodes.BookTitleTooLong);
-        guard.Required(isbn, ErrorCodes.BookIsbnRequired, out var normalizedIsbn);
-        guard.MaxLength(normalizedIsbn, IsbnMaxLength, ErrorCodes.BookIsbnTooLong);
-        guard.Required(author, ErrorCodes.BookAuthorRequired, out var normalizedAuthor);
-        guard.MaxLength(normalizedAuthor, AuthorMaxLength, ErrorCodes.BookAuthorTooLong);
-        guard.Positive(totalCopies, ErrorCodes.BookTotalCopiesInvalid);
-
-        return guard.ToResult(() => new Book
-        {
-            Id = Guid.NewGuid(),
-            Title = normalizedTitle,
-            Isbn = normalizedIsbn,
-            Author = normalizedAuthor,
-            IsActive = true,
-            CreatedAtUtc = utcNow,
-            UpdatedAtUtc = utcNow,
-            TotalCopies = totalCopies,
-            AvailableCopies = totalCopies
-        });
+        return new DomainGuard()
+            .Required(title, ErrorCodes.BookTitleRequired, TitleMaxLength, ErrorCodes.BookTitleTooLong, out var normalizedTitle)
+            .Required(isbn, ErrorCodes.BookIsbnRequired, IsbnMaxLength, ErrorCodes.BookIsbnTooLong, out var normalizedIsbn)
+            .Required(author, ErrorCodes.BookAuthorRequired, AuthorMaxLength, ErrorCodes.BookAuthorTooLong, out var normalizedAuthor)
+            .Positive(totalCopies, ErrorCodes.BookTotalCopiesInvalid)
+            .ToResult(() => new Book
+            {
+                Id = Guid.NewGuid(),
+                Title = normalizedTitle,
+                Isbn = normalizedIsbn,
+                Author = normalizedAuthor,
+                IsActive = true,
+                CreatedAtUtc = utcNow,
+                UpdatedAtUtc = utcNow,
+                TotalCopies = totalCopies,
+                AvailableCopies = totalCopies
+            });
     }
 
     public Result UpdateCatalog(string title, string author, DateTime utcNow)
     {
-        var guard = new DomainGuard();
-        guard.Required(title, ErrorCodes.BookTitleRequired, out var normalizedTitle);
-        guard.MaxLength(normalizedTitle, TitleMaxLength, ErrorCodes.BookTitleTooLong);
-        guard.Required(author, ErrorCodes.BookAuthorRequired, out var normalizedAuthor);
-        guard.MaxLength(normalizedAuthor, AuthorMaxLength, ErrorCodes.BookAuthorTooLong);
-
-        var outcome = guard.ToResult();
-        if (outcome.IsFailure)
-        {
-            return outcome;
-        }
-
-        Title = normalizedTitle;
-        Author = normalizedAuthor;
-        UpdatedAtUtc = utcNow;
-        return Result.Success();
+        return new DomainGuard()
+            .Required(title, ErrorCodes.BookTitleRequired, TitleMaxLength, ErrorCodes.BookTitleTooLong, out var normalizedTitle)
+            .Required(author, ErrorCodes.BookAuthorRequired, AuthorMaxLength, ErrorCodes.BookAuthorTooLong, out var normalizedAuthor)
+            .Apply(() =>
+            {
+                Title = normalizedTitle;
+                Author = normalizedAuthor;
+                UpdatedAtUtc = utcNow;
+            });
     }
 
     public Result ApplyTotalCopies(int totalCopies, DateTime utcNow)
     {
-        if (totalCopies < BorrowedCopies)
-        {
-            return Result.Failure(Error.BusinessRule(ErrorCodes.BookTotalCopiesBelowBorrowed));
-        }
-
-        var guard = new DomainGuard();
-        guard.Positive(totalCopies, ErrorCodes.BookTotalCopiesInvalid);
-        var outcome = guard.ToResult();
-        if (outcome.IsFailure)
-        {
-            return outcome;
-        }
-
         var borrowed = BorrowedCopies;
-        TotalCopies = totalCopies;
-        AvailableCopies = totalCopies - borrowed;
-        UpdatedAtUtc = utcNow;
-        return Result.Success();
+        return new DomainGuard()
+            .Ensure(totalCopies >= borrowed, Error.BusinessRule(ErrorCodes.BookTotalCopiesBelowBorrowed))
+            .Positive(totalCopies, ErrorCodes.BookTotalCopiesInvalid)
+            .Apply(() =>
+            {
+                TotalCopies = totalCopies;
+                AvailableCopies = totalCopies - borrowed;
+                UpdatedAtUtc = utcNow;
+            });
     }
 
     public void Deactivate(DateTime utcNow)

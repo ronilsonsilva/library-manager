@@ -26,66 +26,38 @@ public sealed class Loan
 
     public static Result<Loan> Create(Guid bookId, Guid userId, DateTime borrowedAtUtc)
     {
-        var guard = new DomainGuard();
-        guard.RequiredGuid(bookId, ErrorCodes.LoanBookIdRequired);
-        guard.RequiredGuid(userId, ErrorCodes.LoanUserIdRequired);
-
-        var validation = guard.ToResult();
-        if (validation.IsFailure)
-        {
-            return Result.Failure<Loan>(validation.Error);
-        }
-
         var dueAtUtc = borrowedAtUtc.AddDays(14);
-        if (dueAtUtc <= borrowedAtUtc)
-        {
-            return Result.Failure<Loan>(Error.Validation(ErrorCodes.LoanDueDateInvalid));
-        }
+        return new DomainGuard()
+            .RequiredGuid(bookId, ErrorCodes.LoanBookIdRequired)
+            .RequiredGuid(userId, ErrorCodes.LoanUserIdRequired)
+            .Ensure(dueAtUtc > borrowedAtUtc, Error.Validation(ErrorCodes.LoanDueDateInvalid))
+            .ToResult(() => new Loan
+            {
+                Id = Guid.NewGuid(),
+                BookId = bookId,
+                UserId = userId,
+                Status = LoanStatus.Active,
+                BorrowedAtUtc = borrowedAtUtc,
+                DueAtUtc = dueAtUtc
+            });
+    }
 
-        return Result.Success(new Loan
+    public Result MarkReturned(DateTime utcNow) =>
+        ActiveGuard().Apply(() =>
         {
-            Id = Guid.NewGuid(),
-            BookId = bookId,
-            UserId = userId,
-            Status = LoanStatus.Active,
-            BorrowedAtUtc = borrowedAtUtc,
-            DueAtUtc = dueAtUtc
+            Status = LoanStatus.Returned;
+            ReturnedAtUtc = utcNow;
         });
-    }
 
-    public Result MarkReturned(DateTime utcNow)
-    {
-        var active = EnsureActive();
-        if (active.IsFailure)
+    public Result MarkCancelled(DateTime utcNow) =>
+        ActiveGuard().Apply(() =>
         {
-            return active;
-        }
+            Status = LoanStatus.Cancelled;
+            CancelledAtUtc = utcNow;
+        });
 
-        Status = LoanStatus.Returned;
-        ReturnedAtUtc = utcNow;
-        return Result.Success();
-    }
-
-    public Result MarkCancelled(DateTime utcNow)
-    {
-        var active = EnsureActive();
-        if (active.IsFailure)
-        {
-            return active;
-        }
-
-        Status = LoanStatus.Cancelled;
-        CancelledAtUtc = utcNow;
-        return Result.Success();
-    }
-
-    private Result EnsureActive()
-    {
-        if (Status != LoanStatus.Active)
-        {
-            return Result.Failure(Error.BusinessRule(ErrorCodes.LoanInvalidState));
-        }
-
-        return Result.Success();
-    }
+    private DomainGuard ActiveGuard() =>
+        new DomainGuard().Ensure(
+            Status == LoanStatus.Active,
+            Error.BusinessRule(ErrorCodes.LoanInvalidState));
 }
