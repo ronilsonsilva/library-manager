@@ -177,12 +177,12 @@ description: "Task list for production-hardening implementation"
 
 ### Tests for User Story 6
 
-- [ ] T063 [P] [US6] Add failing deactivation cache/Outbox tests in `tests/LibraryManager.IntegrationTests/Books/DeactivateBookCacheTests.cs`
+- [X] T063 [P] [US6] Add failing deactivation cache/Outbox tests in `tests/LibraryManager.IntegrationTests/Books/DeactivateBookCacheTests.cs`
 
 ### Implementation for User Story 6
 
-- [ ] T064 [US6] Ensure `DeactivateBookUseCase` writes `BookAvailabilityChanged` via `IOutboxWriter` before `SaveChangesAsync` and `RemoveAsync` after commit in `src/LibraryManager.Application/Books/DeactivateBook/DeactivateBookUseCase.cs`
-- [ ] T065 [US6] Confirm deactivated `isActive` is what GET availability returns after invalidation in `src/LibraryManager.Application/Books/GetBookAvailability/GetBookAvailabilityUseCase.cs`
+- [X] T064 [US6] Ensure `DeactivateBookUseCase` writes `BookAvailabilityChanged` via `IOutboxWriter` before `SaveChangesAsync` and `RemoveAsync` after commit in `src/LibraryManager.Application/Books/DeactivateBook/DeactivateBookUseCase.cs`
+- [X] T065 [US6] Confirm deactivated `isActive` is what GET availability returns after invalidation in `src/LibraryManager.Application/Books/GetBookAvailability/GetBookAvailabilityUseCase.cs`
 
 **Checkpoint**: Deactivation cannot leave a stale active availability view
 

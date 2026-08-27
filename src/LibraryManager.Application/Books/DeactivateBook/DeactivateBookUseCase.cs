@@ -45,15 +45,18 @@ public sealed class DeactivateBookUseCase(
             return audit.AsFailure();
         }
 
-        await audits.AddAsync(audit.Value, cancellationToken);
-
-        await outbox.WriteAsync(
-            AvailabilityOutbox.MessageType,
-            AvailabilityOutbox.Payload(book.Id, correlation.CorrelationId),
-            utcNow,
+        var saved = await unitOfWork.ExecuteInTransactionAsync(
+            async ct =>
+            {
+                await audits.AddAsync(audit.Value, ct);
+                await outbox.WriteAsync(
+                    AvailabilityOutbox.MessageType,
+                    AvailabilityOutbox.Payload(book.Id, correlation.CorrelationId),
+                    utcNow,
+                    ct);
+                return await unitOfWork.SaveChangesAsync(ct);
+            },
             cancellationToken);
-
-        var saved = await unitOfWork.SaveChangesAsync(cancellationToken);
         if (saved.IsFailure)
         {
             return saved;
