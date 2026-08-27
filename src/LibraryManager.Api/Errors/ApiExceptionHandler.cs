@@ -37,9 +37,12 @@ public sealed class ApiExceptionHandler(
         problem.Extensions["correlationId"] = correlationId;
 
         httpContext.Response.StatusCode = StatusCodes.Status500InternalServerError;
-        httpContext.Response.ContentType = "application/problem+json";
         httpContext.Response.Headers.ContentLanguage = CultureInfo.CurrentUICulture.Name;
-        await httpContext.Response.WriteAsJsonAsync(problem, cancellationToken: cancellationToken);
+        await httpContext.Response.WriteAsJsonAsync(
+            problem,
+            options: null,
+            contentType: "application/problem+json",
+            cancellationToken);
 
         return true;
     }

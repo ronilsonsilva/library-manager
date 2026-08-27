@@ -45,9 +45,11 @@ public sealed class ResultHttpMappingTests : IAsyncLifetime
         var response = await _librarian.GetAsync($"/books/{Guid.NewGuid()}");
 
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        Assert.NotEqual(HttpStatusCode.InternalServerError, response.StatusCode);
         var problem = await response.Content.ReadFromJsonAsync<ProblemDetails>(JsonOptions);
         Assert.NotNull(problem);
         Assert.Equal("Not Found", problem.Title);
+        Assert.NotEqual("An unexpected error occurred.", problem.Title);
         Assert.Equal(ErrorCodes.BookNotFound, ProblemDetailsCode.Read(problem));
         Assert.True(problem.Extensions.ContainsKey("correlationId"));
     }

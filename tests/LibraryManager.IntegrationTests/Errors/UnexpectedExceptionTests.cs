@@ -46,17 +46,24 @@ public sealed class UnexpectedExceptionTests : IAsyncLifetime
         var body = await response.Content.ReadAsStringAsync();
 
         Assert.Equal(HttpStatusCode.InternalServerError, response.StatusCode);
+        Assert.Equal("application/problem+json", response.Content.Headers.ContentType?.MediaType);
         Assert.DoesNotContain("SELECT", body, StringComparison.Ordinal);
         Assert.DoesNotContain("redis:6379", body, StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain("Host=db.example", body, StringComparison.Ordinal);
         Assert.DoesNotContain("at LibraryManager", body, StringComparison.Ordinal);
         Assert.DoesNotContain("InvalidOperationException", body, StringComparison.Ordinal);
+        Assert.DoesNotContain("stackTrace", body, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("Npgsql", body, StringComparison.OrdinalIgnoreCase);
 
         var problem = JsonSerializer.Deserialize<ProblemDetails>(body, JsonOptions);
         Assert.NotNull(problem);
         Assert.Equal("An unexpected error occurred.", problem.Title);
         Assert.Equal("An unexpected error occurred.", problem.Detail);
         Assert.Equal(correlationId, ReadCorrelationId(problem));
+        Assert.Equal(correlationId, response.Headers.GetValues(CorrelationIdMiddleware.HeaderName).Single());
+        Assert.False(problem.Extensions.ContainsKey("exception"));
+        Assert.False(problem.Extensions.ContainsKey("code"));
+        Assert.Null(ProblemDetailsCode.Read(problem));
     }
 
     private static string? ReadCorrelationId(ProblemDetails problem)

@@ -267,7 +267,7 @@ description: "Task list for production-hardening implementation"
 **Purpose**: Docs, dead code, and quickstart walkthrough
 
 - [ ] T079 [P] Document localization, Result mapping, Idempotency-Key binding, cache decorator, NuGet audit, SQL parameterization, and PKCE-only Keycloak in `README.md`
-- [ ] T080 [P] Delete unused `src/LibraryManager.Application/Common/EntityNotFoundException.cs`, `BusinessRuleException.cs`, and `IdempotencyConflictException.cs` if no remaining references
+- [X] T080 [P] Delete unused `src/LibraryManager.Application/Common/EntityNotFoundException.cs`, `BusinessRuleException.cs`, and `IdempotencyConflictException.cs` if no remaining references
 - [ ] T081 Walk `specs/002-production-hardening/quickstart.md` (Compose health, PKCE-only auth, binder 400s, Accept-Language, Redis-down availability, `dotnet test`)
 - [ ] T082 [P] Confirm `ControllerContractLocationTests` still forbids Application `PagedResult<T>` / DTO return types on list/history/audit actions in `tests/LibraryManager.IntegrationTests/Architecture/ControllerContractLocationTests.cs` after Result mapping (T051)
 

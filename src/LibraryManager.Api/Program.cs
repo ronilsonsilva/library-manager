@@ -4,6 +4,7 @@ using LibraryManager.Api.Localization;
 using LibraryManager.Api.Middleware;
 using LibraryManager.Api.OpenApi;
 using LibraryManager.Api.Persistence;
+using LibraryManager.Api.Resources;
 using LibraryManager.Api.Security;
 using LibraryManager.Api.Telemetry;
 using LibraryManager.Application.Abstractions;
@@ -21,6 +22,7 @@ using LibraryManager.Application.Loans.ReturnLoan;
 using LibraryManager.Application.Users.CreateUser;
 using LibraryManager.Application.Users.GetUserLoans;
 using LibraryManager.Infrastructure;
+using Microsoft.Extensions.Localization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -28,7 +30,27 @@ builder.Services.AddLibraryManagerLocalization();
 builder.Services.AddControllers()
     .AddLibraryManagerDataAnnotationsLocalization();
 builder.Services.AddExceptionHandler<ApiExceptionHandler>();
-builder.Services.AddProblemDetails();
+builder.Services.AddProblemDetails(options =>
+{
+    options.CustomizeProblemDetails = context =>
+    {
+        context.ProblemDetails.Extensions.Remove("exception");
+        context.ProblemDetails.Extensions.Remove("error");
+        if (context.Exception is null or OperationCanceledException)
+        {
+            return;
+        }
+
+        if (context.ProblemDetails.Status is not null and < StatusCodes.Status500InternalServerError)
+        {
+            return;
+        }
+
+        var localizer = context.HttpContext.RequestServices.GetRequiredService<IStringLocalizer<SharedResource>>();
+        context.ProblemDetails.Title = localizer["Problem_Unexpected_Title"];
+        context.ProblemDetails.Detail = localizer["Problem_Unexpected_Detail"];
+    };
+});
 builder.Services.AddLibraryManagerAuthentication(builder.Configuration, builder.Environment);
 builder.Services.AddLibraryManagerSwagger(builder.Configuration);
 builder.Services.AddLibraryManagerInfrastructure(builder.Configuration);
