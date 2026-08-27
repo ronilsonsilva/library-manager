@@ -37,7 +37,7 @@ curl -sS http://localhost:8080/health/ready
 | Use | Username | Password |
 | --- | --- | --- |
 | Keycloak Admin Console (`http://localhost:8081`) | `admin` | `admin-dev-only` |
-| Librarian (Swagger / local tokens) | `librarian` | `librarian-dev-only` |
+| Librarian (Swagger Authorization Code + PKCE) | `librarian` | `librarian-dev-only` |
 | PostgreSQL (`library_manager`) | `postgres` | `postgres` |
 | Redis | (none) | (none) |
 
@@ -53,15 +53,7 @@ The librarian user has the realm role `librarian`. Audience on access tokens is 
 
 The browser talks to Keycloak at `http://localhost:8081/realms/library-manager`. The API container fetches OIDC metadata from the Compose DNS name `keycloak` (`Authentication:MetadataAddress`) and validates JWT `iss` as `http://localhost:8081/realms/library-manager`. Keycloak `hostname-backchannel-dynamic` keeps JWKS reachable on the internal network.
 
-The API never exposes a login endpoint. A password grant against Keycloak is a local smoke tool only:
-
-```bash
-curl -sS -X POST "http://localhost:8081/realms/library-manager/protocol/openid-connect/token" \
-  -d "client_id=library-manager-swagger" \
-  -d "grant_type=password" \
-  -d "username=librarian" \
-  -d "password=librarian-dev-only"
-```
+The API never exposes a login or token endpoint. Direct Access Grants are disabled on every client in `infrastructure/keycloak/library-manager-realm.json`. Do not use Resource Owner Password Credentials against Keycloak. Obtain a Bearer token only through Swagger: Keycloak login, Authorization Code + PKCE S256, then call the API.
 
 Mutations without a Bearer token return HTTP 401. An authenticated token without the flat `roles` claim value `librarian` returns HTTP 403.
 

@@ -196,13 +196,13 @@ description: "Task list for production-hardening implementation"
 
 ### Tests for User Story 8
 
-- [ ] T066 [P] [US8] Add failing assertions that every client in `infrastructure/keycloak/library-manager-realm.json` has `directAccessGrantsEnabled: false`, and that `README.md`, `specs/001-library-manager/quickstart.md`, and test sources contain no Keycloak realm token-endpoint password grant (allow `AuthorizationTests` API-path 404 probes) in `tests/LibraryManager.IntegrationTests/Security/KeycloakRealmImportTests.cs`
+- [X] T066 [P] [US8] Add failing assertions that every client in `infrastructure/keycloak/library-manager-realm.json` has `directAccessGrantsEnabled: false`, and that `README.md`, `specs/001-library-manager/quickstart.md`, and test sources contain no Keycloak realm token-endpoint password grant (allow `AuthorizationTests` API-path 404 probes) in `tests/LibraryManager.IntegrationTests/Security/KeycloakRealmImportTests.cs`
 
 ### Implementation for User Story 8
 
-- [ ] T067 [US8] Set `directAccessGrantsEnabled` to `false` on `library-manager-swagger` in `infrastructure/keycloak/library-manager-realm.json`
-- [ ] T068 [US8] Remove Resource Owner Password Credentials curl/examples from `README.md`
-- [ ] T069 [US8] Remove password-grant smoke example from `specs/001-library-manager/quickstart.md` (keep PKCE instructions)
+- [X] T067 [US8] Set `directAccessGrantsEnabled` to `false` on `library-manager-swagger` in `infrastructure/keycloak/library-manager-realm.json`
+- [X] T068 [US8] Remove Resource Owner Password Credentials curl/examples from `README.md`
+- [X] T069 [US8] Remove password-grant smoke example from `specs/001-library-manager/quickstart.md` (keep PKCE instructions)
 
 **Checkpoint**: Local identity setup is PKCE-only
 
