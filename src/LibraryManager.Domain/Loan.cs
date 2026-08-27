@@ -1,3 +1,5 @@
+using LibraryManager.Domain.Validation;
+
 namespace LibraryManager.Domain;
 
 public sealed class Loan
@@ -22,25 +24,25 @@ public sealed class Loan
 
     public DateTime? CancelledAtUtc { get; private set; }
 
-    public static Loan Create(Guid bookId, Guid userId, DateTime borrowedAtUtc)
+    public static Result<Loan> Create(Guid bookId, Guid userId, DateTime borrowedAtUtc)
     {
-        if (bookId == Guid.Empty)
-        {
-            throw new DomainException("BookId is required.");
-        }
+        var guard = new DomainGuard();
+        guard.RequiredGuid(bookId, ErrorCodes.LoanBookIdRequired);
+        guard.RequiredGuid(userId, ErrorCodes.LoanUserIdRequired);
 
-        if (userId == Guid.Empty)
+        var validation = guard.ToResult();
+        if (validation.IsFailure)
         {
-            throw new DomainException("UserId is required.");
+            return Result.Failure<Loan>(validation.Error);
         }
 
         var dueAtUtc = borrowedAtUtc.AddDays(14);
         if (dueAtUtc <= borrowedAtUtc)
         {
-            throw new DomainException("DueAtUtc must be later than BorrowedAtUtc.");
+            return Result.Failure<Loan>(Error.Validation(ErrorCodes.LoanDueDateInvalid));
         }
 
-        return new Loan
+        return Result.Success(new Loan
         {
             Id = Guid.NewGuid(),
             BookId = bookId,
@@ -48,28 +50,42 @@ public sealed class Loan
             Status = LoanStatus.Active,
             BorrowedAtUtc = borrowedAtUtc,
             DueAtUtc = dueAtUtc
-        };
+        });
     }
 
-    public void MarkReturned(DateTime utcNow)
+    public Result MarkReturned(DateTime utcNow)
     {
-        EnsureActive();
+        var active = EnsureActive();
+        if (active.IsFailure)
+        {
+            return active;
+        }
+
         Status = LoanStatus.Returned;
         ReturnedAtUtc = utcNow;
+        return Result.Success();
     }
 
-    public void MarkCancelled(DateTime utcNow)
+    public Result MarkCancelled(DateTime utcNow)
     {
-        EnsureActive();
+        var active = EnsureActive();
+        if (active.IsFailure)
+        {
+            return active;
+        }
+
         Status = LoanStatus.Cancelled;
         CancelledAtUtc = utcNow;
+        return Result.Success();
     }
 
-    private void EnsureActive()
+    private Result EnsureActive()
     {
         if (Status != LoanStatus.Active)
         {
-            throw new DomainException("Only an Active loan can be returned or cancelled.");
+            return Result.Failure(Error.BusinessRule(ErrorCodes.LoanInvalidState));
         }
+
+        return Result.Success();
     }
 }

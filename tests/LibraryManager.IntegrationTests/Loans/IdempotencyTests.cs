@@ -6,9 +6,11 @@ using LibraryManager.Application.Abstractions;
 using LibraryManager.Application.Books;
 using LibraryManager.Application.Loans;
 using LibraryManager.Application.Users;
+using LibraryManager.Domain;
 using LibraryManager.Infrastructure.Outbox;
 using LibraryManager.Infrastructure.Persistence;
 using LibraryManager.IntegrationTests;
+using LibraryManager.IntegrationTests.Errors;
 using LibraryManager.IntegrationTests.Infrastructure;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -119,6 +121,7 @@ public sealed class IdempotencyTests : IAsyncLifetime
         var problem = await conflict.Content.ReadFromJsonAsync<ProblemDetails>(JsonOptions);
         Assert.NotNull(problem?.Detail);
         Assert.Contains("Idempotency-Key", problem.Detail, StringComparison.Ordinal);
+        Assert.Equal(ErrorCodes.IdempotencyPayloadMismatch, ProblemDetailsCode.Read(problem));
 
         Assert.Equal(1, await CountLoansForBookAsync(book.Id));
         Assert.Equal(0, await CountLoansForBookAsync(otherBook.Id));

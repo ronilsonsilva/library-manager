@@ -2,6 +2,7 @@ using LibraryManager.Api.Contracts.Common;
 using LibraryManager.Api.Contracts.Loans.Responses;
 using LibraryManager.Api.Contracts.Users.Requests;
 using LibraryManager.Api.Contracts.Users.Responses;
+using LibraryManager.Api.ResultMapping;
 using LibraryManager.Api.Security;
 using LibraryManager.Application.Common;
 using LibraryManager.Application.Users.CreateUser;
@@ -19,12 +20,12 @@ public sealed class UsersController(
 {
     [HttpPost]
     [Authorize(Policy = LibrarianPolicy.Name)]
-    public async Task<ActionResult<UserResponse>> Create(
+    public async Task<IActionResult> Create(
         [FromBody] CreateUserRequest request,
         CancellationToken cancellationToken)
     {
-        var user = await createUser.ExecuteAsync(request.Name, request.Email, cancellationToken);
-        return StatusCode(StatusCodes.Status201Created, UserResponse.From(user));
+        var result = await createUser.ExecuteAsync(request.Name, request.Email, cancellationToken);
+        return result.ToCreatedResult(this, UserResponse.From);
     }
 
     [HttpGet("{id:guid}/loans")]
@@ -36,6 +37,6 @@ public sealed class UsersController(
         CancellationToken cancellationToken = default)
     {
         var result = await getUserLoans.ExecuteAsync(id, page, pageSize, cancellationToken);
-        return Ok(PagedResponse<LoanResponse>.From(result, LoanResponse.From));
+        return result.ToActionResult(this, LoanResponse.From);
     }
 }

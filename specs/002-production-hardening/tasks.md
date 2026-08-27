@@ -39,17 +39,17 @@ description: "Task list for production-hardening implementation"
 
 **CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T004 [P] Implement `ErrorType` and `Error` (`Code`, `Type`, `Arguments`) in `src/LibraryManager.Domain/ErrorType.cs` and `src/LibraryManager.Domain/Error.cs`
-- [ ] T005 [P] Implement `Result` and `Result<T>` in `src/LibraryManager.Domain/Result.cs` and `src/LibraryManager.Domain/ResultT.cs`
-- [ ] T006 [P] Add stable English codes from `data-model.md` in `src/LibraryManager.Domain/ErrorCodes.cs`
-- [ ] T007 Implement `DomainGuard` (required string, non-empty Guid, positive int, UTC timestamp) in `src/LibraryManager.Domain/Validation/DomainGuard.cs`
-- [ ] T008 [P] Add `SharedResource` marker in `src/LibraryManager.Api/Localization/SharedResource.cs`
+- [X] T004 [P] Implement `ErrorType` and `Error` (`Code`, `Type`, `Arguments`) in `src/LibraryManager.Domain/ErrorType.cs` and `src/LibraryManager.Domain/Error.cs`
+- [X] T005 [P] Implement `Result` and `Result<T>` in `src/LibraryManager.Domain/Result.cs` and `src/LibraryManager.Domain/ResultT.cs`
+- [X] T006 [P] Add stable English codes from `data-model.md` in `src/LibraryManager.Domain/ErrorCodes.cs`
+- [X] T007 Implement `DomainGuard` (required string, non-empty Guid, positive int, UTC timestamp) in `src/LibraryManager.Domain/Validation/DomainGuard.cs`
+- [X] T008 [P] Add `SharedResource` marker in `src/LibraryManager.Api/Localization/SharedResource.cs`
 - [X] T009 [P] Create `src/LibraryManager.Api/Resources/SharedResource.resx`, `SharedResource.en-US.resx`, and `SharedResource.pt-BR.resx` with keys from `plan.md` (including `Validation_IdempotencyKey_Required`, `Validation_IdempotencyKey_MaxLength`, `Validation_Title_Required`, `Validation_Isbn_Required`, `Validation_TotalCopies_Range`, `Error_Book_NotFound`, `Error_Book_Unavailable`, `Error_Loan_InvalidState`, `Error_Idempotency_Conflict`, `Problem_Validation_Title`, `Problem_Unexpected_Title`)
-- [ ] T010 Implement `ErrorLocalizer` mapping `Error.Code` to `Error_*` resources in `src/LibraryManager.Api/Localization/ErrorLocalizer.cs`
+- [X] T010 Implement `ErrorLocalizer` mapping `Error.Code` to `Error_*` resources in `src/LibraryManager.Api/Localization/ErrorLocalizer.cs`
 - [X] T011 Configure `AddLocalization`, `AddDataAnnotationsLocalization`, `RequestLocalization` (`en-US` default, `pt-BR`, `Accept-Language`), and `Content-Language` in `src/LibraryManager.Api/Localization/LocalizationConfiguration.cs` and `src/LibraryManager.Api/Program.cs` (CorrelationId → RequestLocalization → ExceptionHandler)
-- [ ] T012 Implement `ToActionResult`, `ToCreatedResult`, and `ToNoContentResult` in `src/LibraryManager.Api/Results/ResultHttpMapper.cs` (map Validation/NotFound/BusinessRule/Conflict to 400/404/422/409; set `code` + `correlationId`; never throw)
-- [ ] T013 [P] Add unit tests for `Result`/`Error` in `tests/LibraryManager.UnitTests/Domain/ResultTests.cs`
-- [ ] T014 [P] Add unit tests for `DomainGuard` in `tests/LibraryManager.UnitTests/Domain/DomainGuardTests.cs`
+- [X] T012 Implement `ToActionResult`, `ToCreatedResult`, and `ToNoContentResult` in `src/LibraryManager.Api/Results/ResultHttpMapper.cs` (map Validation/NotFound/BusinessRule/Conflict to 400/404/422/409; set `code` + `correlationId`; never throw)
+- [X] T013 [P] Add unit tests for `Result`/`Error` in `tests/LibraryManager.UnitTests/Domain/ResultTests.cs`
+- [X] T014 [P] Add unit tests for `DomainGuard` in `tests/LibraryManager.UnitTests/Domain/DomainGuardTests.cs`
 
 **Checkpoint**: Foundation ready — user story implementation can begin
 
@@ -122,25 +122,25 @@ description: "Task list for production-hardening implementation"
 
 ### Tests for User Story 3
 
-- [ ] T040 [P] [US3] Extend `tests/LibraryManager.UnitTests/Domain/AuditEventTests.cs` so expected field validation returns `Result` and does not throw `DomainException`
-- [ ] T041 [P] [US3] Add failing Result HTTP mapping tests (404/422/409/`code` extension, not unhandled) in `tests/LibraryManager.IntegrationTests/Errors/ResultHttpMappingTests.cs`
-- [ ] T042 [P] [US3] Add failing unexpected-handler tests (generic 500, `correlationId`, no stack/SQL/Redis) in `tests/LibraryManager.IntegrationTests/Errors/UnexpectedExceptionTests.cs`
+- [X] T040 [P] [US3] Extend `tests/LibraryManager.UnitTests/Domain/AuditEventTests.cs` so expected field validation returns `Result` and does not throw `DomainException`
+- [X] T041 [P] [US3] Add failing Result HTTP mapping tests (404/422/409/`code` extension, not unhandled) in `tests/LibraryManager.IntegrationTests/Errors/ResultHttpMappingTests.cs`
+- [X] T042 [P] [US3] Add failing unexpected-handler tests (generic 500, `correlationId`, no stack/SQL/Redis) in `tests/LibraryManager.IntegrationTests/Errors/UnexpectedExceptionTests.cs`
 
 ### Implementation for User Story 3
 
-- [ ] T043 [US3] Change `AuditEvent.Create` to `Result<AuditEvent>` via `DomainGuard` in `src/LibraryManager.Domain/AuditEvent.cs`
-- [ ] T044 [P] [US3] Change expected `Book` factory/update validation to `Result`/`Result<Book>` in `src/LibraryManager.Domain/Book.cs`
-- [ ] T045 [P] [US3] Change expected `User.Create` validation to `Result<User>` in `src/LibraryManager.Domain/User.cs`
-- [ ] T046 [P] [US3] Change expected `Loan.Create` / `MarkReturned` / `MarkCancelled` validation to `Result` in `src/LibraryManager.Domain/Loan.cs`
-- [ ] T047 [US3] Propagate `Result` from book UseCases in `src/LibraryManager.Application/Books/` (`CreateBookUseCase.cs`, `GetBookUseCase.cs`, `ListBooksUseCase.cs`, `UpdateBookUseCase.cs`, `DeactivateBookUseCase.cs`, `GetBookAvailabilityUseCase.cs`)
-- [ ] T048 [US3] Propagate `Result` from `src/LibraryManager.Application/Users/CreateUser/CreateUserUseCase.cs` and `GetUserLoans/GetUserLoansUseCase.cs`
-- [ ] T049 [US3] Propagate `Result` from loan UseCases including `Idempotency.PayloadMismatch` in `src/LibraryManager.Application/Loans/CreateLoan/CreateLoanUseCase.cs`, `ReturnLoan/ReturnLoanUseCase.cs`, `CancelLoan/CancelLoanUseCase.cs`, `GetBookLoanHistory/GetBookLoanHistoryUseCase.cs`, and `CompleteActiveLoan.cs`
-- [ ] T050 [US3] Propagate `Result` from `src/LibraryManager.Application/Audit/GetAuditEvents/GetAuditEventsUseCase.cs`
-- [ ] T051 [US3] Map all controller actions through `ResultHttpMapper` in `src/LibraryManager.Api/Controllers/BooksController.cs`, `UsersController.cs`, `LoansController.cs`, and `AuditEventsController.cs` (success bodies remain API `*Response` / `PagedResponse<T>`; never serialize Application DTOs or `PagedResult<T>`)
-- [ ] T052 [US3] Restrict `src/LibraryManager.Api/Errors/ApiExceptionHandler.cs` to unexpected failures (localized `Problem_Unexpected_Title`, no `exception.Message`, preserve `correlationId`, return `false` for `OperationCanceledException`)
-- [ ] T053 [US3] Remove expected `EntityNotFoundException` / `BusinessRuleException` / `IdempotencyConflictException` throw sites from `src/LibraryManager.Application/`
-- [ ] T054 [US3] Update Domain unit tests in `tests/LibraryManager.UnitTests/Domain/BookTests.cs`, `UserTests.cs`, and `LoanTests.cs` for Result instead of `DomainException`
-- [ ] T055 [US3] Update integration assertions that expected DomainException problem titles for 404/422/409 in `tests/LibraryManager.IntegrationTests/Books/`, `Users/`, `Loans/`, and `Security/`
+- [X] T043 [US3] Change `AuditEvent.Create` to `Result<AuditEvent>` via `DomainGuard` in `src/LibraryManager.Domain/AuditEvent.cs`
+- [X] T044 [P] [US3] Change expected `Book` factory/update validation to `Result`/`Result<Book>` in `src/LibraryManager.Domain/Book.cs`
+- [X] T045 [P] [US3] Change expected `User.Create` validation to `Result<User>` in `src/LibraryManager.Domain/User.cs`
+- [X] T046 [P] [US3] Change expected `Loan.Create` / `MarkReturned` / `MarkCancelled` validation to `Result` in `src/LibraryManager.Domain/Loan.cs`
+- [X] T047 [US3] Propagate `Result` from book UseCases in `src/LibraryManager.Application/Books/` (`CreateBookUseCase.cs`, `GetBookUseCase.cs`, `ListBooksUseCase.cs`, `UpdateBookUseCase.cs`, `DeactivateBookUseCase.cs`, `GetBookAvailabilityUseCase.cs`)
+- [X] T048 [US3] Propagate `Result` from `src/LibraryManager.Application/Users/CreateUser/CreateUserUseCase.cs` and `GetUserLoans/GetUserLoansUseCase.cs`
+- [X] T049 [US3] Propagate `Result` from loan UseCases including `Idempotency.PayloadMismatch` in `src/LibraryManager.Application/Loans/CreateLoan/CreateLoanUseCase.cs`, `ReturnLoan/ReturnLoanUseCase.cs`, `CancelLoan/CancelLoanUseCase.cs`, `GetBookLoanHistory/GetBookLoanHistoryUseCase.cs`, and `CompleteActiveLoan.cs`
+- [X] T050 [US3] Propagate `Result` from `src/LibraryManager.Application/Audit/GetAuditEvents/GetAuditEventsUseCase.cs`
+- [X] T051 [US3] Map all controller actions through `ResultHttpMapper` in `src/LibraryManager.Api/Controllers/BooksController.cs`, `UsersController.cs`, `LoansController.cs`, and `AuditEventsController.cs` (success bodies remain API `*Response` / `PagedResponse<T>`; never serialize Application DTOs or `PagedResult<T>`)
+- [X] T052 [US3] Restrict `src/LibraryManager.Api/Errors/ApiExceptionHandler.cs` to unexpected failures (localized `Problem_Unexpected_Title`, no `exception.Message`, preserve `correlationId`, return `false` for `OperationCanceledException`)
+- [X] T053 [US3] Remove expected `EntityNotFoundException` / `BusinessRuleException` / `IdempotencyConflictException` throw sites from `src/LibraryManager.Application/`
+- [X] T054 [US3] Update Domain unit tests in `tests/LibraryManager.UnitTests/Domain/BookTests.cs`, `UserTests.cs`, and `LoanTests.cs` for Result instead of `DomainException`
+- [X] T055 [US3] Update integration assertions that expected DomainException problem titles for 404/422/409 in `tests/LibraryManager.IntegrationTests/Books/`, `Users/`, `Loans/`, and `Security/`
 
 **Checkpoint**: Expected failures are Results; unexpected failures are safe HTTP 500s
 

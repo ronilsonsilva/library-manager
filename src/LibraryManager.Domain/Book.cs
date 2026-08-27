@@ -1,3 +1,5 @@
+using LibraryManager.Domain.Validation;
+
 namespace LibraryManager.Domain;
 
 public sealed class Book
@@ -33,73 +35,76 @@ public sealed class Book
 
     public int BorrowedCopies => TotalCopies - AvailableCopies;
 
-    public static Book Create(string title, string isbn, string author, int totalCopies, DateTime utcNow)
+    public static Result<Book> Create(string title, string isbn, string author, int totalCopies, DateTime utcNow)
     {
-        var book = new Book
+        var guard = new DomainGuard();
+        guard.Required(title, ErrorCodes.BookTitleRequired, out var normalizedTitle);
+        guard.MaxLength(normalizedTitle, TitleMaxLength, ErrorCodes.BookTitleTooLong);
+        guard.Required(isbn, ErrorCodes.BookIsbnRequired, out var normalizedIsbn);
+        guard.MaxLength(normalizedIsbn, IsbnMaxLength, ErrorCodes.BookIsbnTooLong);
+        guard.Required(author, ErrorCodes.BookAuthorRequired, out var normalizedAuthor);
+        guard.MaxLength(normalizedAuthor, AuthorMaxLength, ErrorCodes.BookAuthorTooLong);
+        guard.Positive(totalCopies, ErrorCodes.BookTotalCopiesInvalid);
+
+        return guard.ToResult(() => new Book
         {
             Id = Guid.NewGuid(),
-            Title = RequireText(title, TitleMaxLength, nameof(title)),
-            Isbn = RequireText(isbn, IsbnMaxLength, nameof(isbn)),
-            Author = RequireText(author, AuthorMaxLength, nameof(author)),
+            Title = normalizedTitle,
+            Isbn = normalizedIsbn,
+            Author = normalizedAuthor,
             IsActive = true,
             CreatedAtUtc = utcNow,
-            UpdatedAtUtc = utcNow
-        };
+            UpdatedAtUtc = utcNow,
+            TotalCopies = totalCopies,
+            AvailableCopies = totalCopies
+        });
+    }
 
-        if (totalCopies < 1)
+    public Result UpdateCatalog(string title, string author, DateTime utcNow)
+    {
+        var guard = new DomainGuard();
+        guard.Required(title, ErrorCodes.BookTitleRequired, out var normalizedTitle);
+        guard.MaxLength(normalizedTitle, TitleMaxLength, ErrorCodes.BookTitleTooLong);
+        guard.Required(author, ErrorCodes.BookAuthorRequired, out var normalizedAuthor);
+        guard.MaxLength(normalizedAuthor, AuthorMaxLength, ErrorCodes.BookAuthorTooLong);
+
+        var outcome = guard.ToResult();
+        if (outcome.IsFailure)
         {
-            throw new DomainException("TotalCopies must be at least 1.");
+            return outcome;
         }
 
-        book.TotalCopies = totalCopies;
-        book.AvailableCopies = totalCopies;
-        return book;
-    }
-
-    public void UpdateCatalog(string title, string author, DateTime utcNow)
-    {
-        Title = RequireText(title, TitleMaxLength, nameof(title));
-        Author = RequireText(author, AuthorMaxLength, nameof(author));
+        Title = normalizedTitle;
+        Author = normalizedAuthor;
         UpdatedAtUtc = utcNow;
+        return Result.Success();
     }
 
-    public void ApplyTotalCopies(int totalCopies, DateTime utcNow)
+    public Result ApplyTotalCopies(int totalCopies, DateTime utcNow)
     {
         if (totalCopies < BorrowedCopies)
         {
-            throw new DomainException("TotalCopies cannot be below the number of copies currently on loan.");
+            return Result.Failure(Error.BusinessRule(ErrorCodes.BookTotalCopiesBelowBorrowed));
         }
 
-        if (totalCopies < 1)
+        var guard = new DomainGuard();
+        guard.Positive(totalCopies, ErrorCodes.BookTotalCopiesInvalid);
+        var outcome = guard.ToResult();
+        if (outcome.IsFailure)
         {
-            throw new DomainException("TotalCopies must be at least 1.");
+            return outcome;
         }
 
         var borrowed = BorrowedCopies;
         TotalCopies = totalCopies;
         AvailableCopies = totalCopies - borrowed;
         UpdatedAtUtc = utcNow;
+        return Result.Success();
     }
 
     public void Deactivate(DateTime utcNow)
     {
         IsActive = false;
         UpdatedAtUtc = utcNow;
-    }
-
-    private static string RequireText(string value, int maxLength, string name)
-    {
-        if (string.IsNullOrWhiteSpace(value))
-        {
-            throw new DomainException($"{name} is required.");
-        }
-
-        var trimmed = value.Trim();
-        if (trimmed.Length > maxLength)
-        {
-            throw new DomainException($"{name} must be at most {maxLength} characters.");
-        }
-
-        return trimmed;
     }
 }

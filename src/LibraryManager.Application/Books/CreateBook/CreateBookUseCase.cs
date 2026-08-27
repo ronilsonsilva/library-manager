@@ -13,7 +13,7 @@ public sealed class CreateBookUseCase(
     ICurrentUserContext currentUser,
     ICorrelationContext correlation)
 {
-    public async Task<BookDto> ExecuteAsync(
+    public async Task<Result<BookDto>> ExecuteAsync(
         string title,
         string isbn,
         string author,
@@ -25,11 +25,17 @@ public sealed class CreateBookUseCase(
         var existing = await books.GetByIsbnAsync(isbn, cancellationToken);
         if (existing is not null)
         {
-            throw new BusinessRuleException("A book with this ISBN already exists.");
+            return Result.Failure<BookDto>(Error.BusinessRule(ErrorCodes.BookDuplicateIsbn));
         }
 
         var utcNow = clock.UtcNow;
-        var book = Book.Create(title, isbn, author, totalCopies, utcNow);
+        var created = Book.Create(title, isbn, author, totalCopies, utcNow);
+        if (created.IsFailure)
+        {
+            return created.AsFailure<BookDto>();
+        }
+
+        var book = created.Value;
         await books.AddAsync(book, cancellationToken);
 
         var audit = AuditEvent.Create(
@@ -46,7 +52,12 @@ public sealed class CreateBookUseCase(
                 book.Author,
                 book.TotalCopies
             }));
-        await audits.AddAsync(audit, cancellationToken);
+        if (audit.IsFailure)
+        {
+            return audit.AsFailure<BookDto>();
+        }
+
+        await audits.AddAsync(audit.Value, cancellationToken);
 
         await outbox.WriteAsync(
             AvailabilityOutbox.MessageType,
@@ -54,7 +65,12 @@ public sealed class CreateBookUseCase(
             utcNow,
             cancellationToken);
 
-        await unitOfWork.SaveChangesAsync(cancellationToken);
-        return BookDto.From(book);
+        var saved = await unitOfWork.SaveChangesAsync(cancellationToken);
+        if (saved.IsFailure)
+        {
+            return saved.AsFailure<BookDto>();
+        }
+
+        return Result.Success(BookDto.From(book));
     }
 }

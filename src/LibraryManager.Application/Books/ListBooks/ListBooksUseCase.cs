@@ -1,11 +1,12 @@
 using LibraryManager.Application.Abstractions;
 using LibraryManager.Application.Common;
+using LibraryManager.Domain;
 
 namespace LibraryManager.Application.Books.ListBooks;
 
 public sealed class ListBooksUseCase(IBookRepository books)
 {
-    public async Task<PagedResult<BookDto>> ExecuteAsync(
+    public async Task<Result<PagedResult<BookDto>>> ExecuteAsync(
         int page,
         int pageSize,
         bool? isActive,
@@ -20,10 +21,10 @@ public sealed class ListBooksUseCase(IBookRepository books)
             isActive,
             cancellationToken);
 
-        return new PagedResult<BookDto>(
+        return Result.Success(new PagedResult<BookDto>(
             items.Select(BookDto.From).ToArray(),
             normalizedPage,
             normalizedPageSize,
-            totalCount);
+            totalCount));
     }
 }

@@ -18,7 +18,7 @@ public sealed class ReturnLoanUseCase(
     ILogger<ReturnLoanUseCase> logger,
     ILibraryManagerMetrics metrics)
 {
-    public Task<LoanDto> ExecuteAsync(Guid loanId, CancellationToken cancellationToken) =>
+    public Task<Result<LoanDto>> ExecuteAsync(Guid loanId, CancellationToken cancellationToken) =>
         CompleteActiveLoan.ExecuteAsync(
             loans,
             books,

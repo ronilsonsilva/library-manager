@@ -70,6 +70,15 @@ app.MapControllers();
 app.MapHealthEndpoints();
 app.MapSecurityProbes();
 
+if (app.Environment.IsEnvironment("Testing"))
+{
+    app.MapGet("/__test/unexpected-error", static () =>
+    {
+        throw new InvalidOperationException(
+            "Host=db.example; SELECT password FROM users; redis:6379");
+    }).AllowAnonymous();
+}
+
 app.Run();
 
 public partial class Program;

@@ -9,7 +9,7 @@ public sealed class UserTests
     {
         var now = DateTime.UtcNow;
 
-        var user = User.Create("  Ada Lovelace  ", "  Ada@Example.COM  ", now);
+        var user = User.Create("  Ada Lovelace  ", "  Ada@Example.COM  ", now).Value;
 
         Assert.Equal("Ada Lovelace", user.Name);
         Assert.Equal("ada@example.com", user.Email);
@@ -22,7 +22,10 @@ public sealed class UserTests
     [InlineData("   ")]
     public void Create_rejects_missing_name(string name)
     {
-        Assert.Throws<DomainException>(() => User.Create(name, "ada@example.com", DateTime.UtcNow));
+        var result = User.Create(name, "ada@example.com", DateTime.UtcNow);
+
+        Assert.True(result.IsFailure);
+        Assert.Equal(ErrorCodes.UserNameRequired, result.Error.Code);
     }
 
     [Theory]
@@ -30,7 +33,10 @@ public sealed class UserTests
     [InlineData("   ")]
     public void Create_rejects_missing_email(string email)
     {
-        Assert.Throws<DomainException>(() => User.Create("Ada Lovelace", email, DateTime.UtcNow));
+        var result = User.Create("Ada Lovelace", email, DateTime.UtcNow);
+
+        Assert.True(result.IsFailure);
+        Assert.Equal(ErrorCodes.UserEmailRequired, result.Error.Code);
     }
 
     [Fact]
@@ -38,9 +44,10 @@ public sealed class UserTests
     {
         var name = new string('a', User.NameMaxLength + 1);
 
-        var exception = Assert.Throws<DomainException>(() =>
-            User.Create(name, "ada@example.com", DateTime.UtcNow));
+        var result = User.Create(name, "ada@example.com", DateTime.UtcNow);
 
-        Assert.Contains("Name", exception.Message, StringComparison.Ordinal);
+        Assert.True(result.IsFailure);
+        Assert.Equal(ErrorCodes.UserNameTooLong, result.Error.Code);
+        Assert.Equal(ErrorType.Validation, result.Error.Type);
     }
 }

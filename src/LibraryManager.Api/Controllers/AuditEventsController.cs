@@ -1,5 +1,6 @@
 using LibraryManager.Api.Contracts.Audit.Responses;
 using LibraryManager.Api.Contracts.Common;
+using LibraryManager.Api.ResultMapping;
 using LibraryManager.Api.Security;
 using LibraryManager.Application.Audit.GetAuditEvents;
 using LibraryManager.Application.Common;
@@ -27,6 +28,6 @@ public sealed class AuditEventsController(GetAuditEventsUseCase getAuditEvents) 
             entityType,
             entityId,
             cancellationToken);
-        return Ok(PagedResponse<AuditEventResponse>.From(result, AuditEventResponse.From));
+        return result.ToActionResult(this, AuditEventResponse.From);
     }
 }

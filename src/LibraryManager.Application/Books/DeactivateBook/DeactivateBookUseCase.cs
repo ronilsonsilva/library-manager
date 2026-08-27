@@ -17,16 +17,19 @@ public sealed class DeactivateBookUseCase(
     ILogger<DeactivateBookUseCase> logger,
     ILibraryManagerMetrics metrics)
 {
-    public async Task ExecuteAsync(Guid id, CancellationToken cancellationToken)
+    public async Task<Result> ExecuteAsync(Guid id, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        var book = await books.GetByIdAsync(id, cancellationToken)
-            ?? throw new EntityNotFoundException(AuditMetadata.BookEntity);
+        var book = await books.GetByIdAsync(id, cancellationToken);
+        if (book is null)
+        {
+            return Result.Failure(Error.NotFound(ErrorCodes.BookNotFound));
+        }
 
         if (!book.IsActive)
         {
-            return;
+            return Result.Success();
         }
 
         var utcNow = clock.UtcNow;
@@ -40,7 +43,12 @@ public sealed class DeactivateBookUseCase(
             utcNow,
             correlation.CorrelationId,
             JsonPayload.Serialize(new { book.Isbn, book.IsActive }));
-        await audits.AddAsync(audit, cancellationToken);
+        if (audit.IsFailure)
+        {
+            return audit.AsFailure();
+        }
+
+        await audits.AddAsync(audit.Value, cancellationToken);
 
         await outbox.WriteAsync(
             AvailabilityOutbox.MessageType,
@@ -48,7 +56,13 @@ public sealed class DeactivateBookUseCase(
             utcNow,
             cancellationToken);
 
-        await unitOfWork.SaveChangesAsync(cancellationToken);
+        var saved = await unitOfWork.SaveChangesAsync(cancellationToken);
+        if (saved.IsFailure)
+        {
+            return saved;
+        }
+
         await AvailabilityCacheInvalidation.TryRemoveAsync(cache, logger, metrics, book.Id, cancellationToken);
+        return Result.Success();
     }
 }

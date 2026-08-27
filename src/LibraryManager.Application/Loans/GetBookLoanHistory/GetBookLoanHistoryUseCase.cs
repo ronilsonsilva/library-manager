@@ -1,11 +1,12 @@
 using LibraryManager.Application.Abstractions;
 using LibraryManager.Application.Common;
+using LibraryManager.Domain;
 
 namespace LibraryManager.Application.Loans.GetBookLoanHistory;
 
 public sealed class GetBookLoanHistoryUseCase(IBookRepository books, ILoanRepository loans)
 {
-    public async Task<PagedResult<LoanDto>> ExecuteAsync(
+    public async Task<Result<PagedResult<LoanDto>>> ExecuteAsync(
         Guid bookId,
         int page,
         int pageSize,
@@ -13,8 +14,11 @@ public sealed class GetBookLoanHistoryUseCase(IBookRepository books, ILoanReposi
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        _ = await books.GetByIdAsync(bookId, cancellationToken)
-            ?? throw new EntityNotFoundException(AuditMetadata.BookEntity);
+        var book = await books.GetByIdAsync(bookId, cancellationToken);
+        if (book is null)
+        {
+            return Result.Failure<PagedResult<LoanDto>>(Error.NotFound(ErrorCodes.BookNotFound));
+        }
 
         var (normalizedPage, normalizedPageSize) = Pagination.Normalize(page, pageSize);
         var (items, totalCount) = await loans.ListByBookAsync(
@@ -23,10 +27,10 @@ public sealed class GetBookLoanHistoryUseCase(IBookRepository books, ILoanReposi
             normalizedPageSize,
             cancellationToken);
 
-        return new PagedResult<LoanDto>(
+        return Result.Success(new PagedResult<LoanDto>(
             items.Select(LoanDto.From).ToArray(),
             normalizedPage,
             normalizedPageSize,
-            totalCount);
+            totalCount));
     }
 }

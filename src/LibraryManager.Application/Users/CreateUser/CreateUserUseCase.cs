@@ -12,18 +12,24 @@ public sealed class CreateUserUseCase(
     ICurrentUserContext currentUser,
     ICorrelationContext correlation)
 {
-    public async Task<UserDto> ExecuteAsync(string name, string email, CancellationToken cancellationToken)
+    public async Task<Result<UserDto>> ExecuteAsync(string name, string email, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
         var existing = await users.GetByEmailAsync(email, cancellationToken);
         if (existing is not null)
         {
-            throw new BusinessRuleException("A user with this email already exists.");
+            return Result.Failure<UserDto>(Error.BusinessRule(ErrorCodes.UserDuplicateEmail));
         }
 
         var utcNow = clock.UtcNow;
-        var user = User.Create(name, email, utcNow);
+        var created = User.Create(name, email, utcNow);
+        if (created.IsFailure)
+        {
+            return created.AsFailure<UserDto>();
+        }
+
+        var user = created.Value;
         await users.AddAsync(user, cancellationToken);
 
         var audit = AuditEvent.Create(
@@ -34,9 +40,19 @@ public sealed class CreateUserUseCase(
             utcNow,
             correlation.CorrelationId,
             JsonPayload.Serialize(new { user.Name, user.Email }));
-        await audits.AddAsync(audit, cancellationToken);
+        if (audit.IsFailure)
+        {
+            return audit.AsFailure<UserDto>();
+        }
 
-        await unitOfWork.SaveChangesAsync(cancellationToken);
-        return UserDto.From(user);
+        await audits.AddAsync(audit.Value, cancellationToken);
+
+        var saved = await unitOfWork.SaveChangesAsync(cancellationToken);
+        if (saved.IsFailure)
+        {
+            return saved.AsFailure<UserDto>();
+        }
+
+        return Result.Success(UserDto.From(user));
     }
 }

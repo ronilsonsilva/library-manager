@@ -1,11 +1,12 @@
 using LibraryManager.Application.Abstractions;
 using LibraryManager.Application.Common;
+using LibraryManager.Domain;
 
 namespace LibraryManager.Application.Audit.GetAuditEvents;
 
 public sealed class GetAuditEventsUseCase(IAuditRepository audits)
 {
-    public async Task<PagedResult<AuditEventDto>> ExecuteAsync(
+    public async Task<Result<PagedResult<AuditEventDto>>> ExecuteAsync(
         int page,
         int pageSize,
         string? entityType,
@@ -22,10 +23,10 @@ public sealed class GetAuditEventsUseCase(IAuditRepository audits)
             entityId,
             cancellationToken);
 
-        return new PagedResult<AuditEventDto>(
+        return Result.Success(new PagedResult<AuditEventDto>(
             items.Select(AuditEventDto.From).ToArray(),
             normalizedPage,
             normalizedPageSize,
-            totalCount);
+            totalCount));
     }
 }

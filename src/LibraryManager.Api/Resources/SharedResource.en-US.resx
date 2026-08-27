@@ -27,22 +27,118 @@
   <data name="Validation_TotalCopies_Range" xml:space="preserve">
     <value>TotalCopies must be at least 1.</value>
   </data>
+  <data name="Error_Audit_EntityTypeRequired" xml:space="preserve">
+    <value>EntityType is required.</value>
+  </data>
+  <data name="Error_Audit_EntityIdRequired" xml:space="preserve">
+    <value>EntityId is required.</value>
+  </data>
+  <data name="Error_Audit_ActionRequired" xml:space="preserve">
+    <value>Action is required.</value>
+  </data>
+  <data name="Error_Audit_ActorIdRequired" xml:space="preserve">
+    <value>ActorId is required.</value>
+  </data>
+  <data name="Error_Audit_CorrelationIdRequired" xml:space="preserve">
+    <value>CorrelationId is required.</value>
+  </data>
+  <data name="Error_Audit_DataJsonRequired" xml:space="preserve">
+    <value>DataJson is required.</value>
+  </data>
   <data name="Error_Book_NotFound" xml:space="preserve">
     <value>Book was not found.</value>
   </data>
   <data name="Error_Book_Unavailable" xml:space="preserve">
-    <value>Book is unavailable.</value>
+    <value>No copies are available.</value>
+  </data>
+  <data name="Error_Book_Inactive" xml:space="preserve">
+    <value>Book is not active.</value>
+  </data>
+  <data name="Error_Book_DuplicateIsbn" xml:space="preserve">
+    <value>A book with this ISBN already exists.</value>
+  </data>
+  <data name="Error_Book_TotalCopiesBelowBorrowed" xml:space="preserve">
+    <value>TotalCopies cannot be below the number of copies currently on loan.</value>
+  </data>
+  <data name="Error_Book_TitleRequired" xml:space="preserve">
+    <value>Title is required.</value>
+  </data>
+  <data name="Error_Book_IsbnRequired" xml:space="preserve">
+    <value>ISBN is required.</value>
+  </data>
+  <data name="Error_Book_AuthorRequired" xml:space="preserve">
+    <value>Author is required.</value>
+  </data>
+  <data name="Error_Book_TitleTooLong" xml:space="preserve">
+    <value>Title must be at most {0} characters.</value>
+  </data>
+  <data name="Error_Book_IsbnTooLong" xml:space="preserve">
+    <value>ISBN must be at most {0} characters.</value>
+  </data>
+  <data name="Error_Book_AuthorTooLong" xml:space="preserve">
+    <value>Author must be at most {0} characters.</value>
+  </data>
+  <data name="Error_Book_TotalCopiesInvalid" xml:space="preserve">
+    <value>TotalCopies must be at least 1.</value>
+  </data>
+  <data name="Error_User_NotFound" xml:space="preserve">
+    <value>User was not found.</value>
+  </data>
+  <data name="Error_User_DuplicateEmail" xml:space="preserve">
+    <value>A user with this email already exists.</value>
+  </data>
+  <data name="Error_User_NameRequired" xml:space="preserve">
+    <value>Name is required.</value>
+  </data>
+  <data name="Error_User_EmailRequired" xml:space="preserve">
+    <value>Email is required.</value>
+  </data>
+  <data name="Error_User_NameTooLong" xml:space="preserve">
+    <value>Name must be at most {0} characters.</value>
+  </data>
+  <data name="Error_User_EmailTooLong" xml:space="preserve">
+    <value>Email must be at most {0} characters.</value>
+  </data>
+  <data name="Error_Loan_NotFound" xml:space="preserve">
+    <value>Loan was not found.</value>
   </data>
   <data name="Error_Loan_InvalidState" xml:space="preserve">
-    <value>Loan is not in a valid state for this operation.</value>
+    <value>Only an Active loan can be returned or cancelled.</value>
+  </data>
+  <data name="Error_Loan_DuplicateActive" xml:space="preserve">
+    <value>An active loan already exists for this user and book.</value>
+  </data>
+  <data name="Error_Loan_BookIdRequired" xml:space="preserve">
+    <value>BookId is required.</value>
+  </data>
+  <data name="Error_Loan_UserIdRequired" xml:space="preserve">
+    <value>UserId is required.</value>
+  </data>
+  <data name="Error_Loan_DueDateInvalid" xml:space="preserve">
+    <value>Due date must be after the borrowed date.</value>
   </data>
   <data name="Error_Idempotency_Conflict" xml:space="preserve">
-    <value>Idempotency-Key payload does not match the original request.</value>
+    <value>Idempotency-Key was reused with a different request.</value>
+  </data>
+  <data name="Error_Idempotency_PayloadMismatch" xml:space="preserve">
+    <value>Idempotency-Key was reused with a different request.</value>
   </data>
   <data name="Problem_Validation_Title" xml:space="preserve">
     <value>One or more validation errors occurred.</value>
   </data>
+  <data name="Problem_NotFound_Title" xml:space="preserve">
+    <value>Not Found</value>
+  </data>
+  <data name="Problem_BusinessRule_Title" xml:space="preserve">
+    <value>Unprocessable Entity</value>
+  </data>
+  <data name="Problem_Conflict_Title" xml:space="preserve">
+    <value>Conflict</value>
+  </data>
   <data name="Problem_Unexpected_Title" xml:space="preserve">
+    <value>An unexpected error occurred.</value>
+  </data>
+  <data name="Problem_Unexpected_Detail" xml:space="preserve">
     <value>An unexpected error occurred.</value>
   </data>
 </root>

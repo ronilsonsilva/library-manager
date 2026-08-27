@@ -1,3 +1,5 @@
+using LibraryManager.Domain.Validation;
+
 namespace LibraryManager.Domain;
 
 public sealed class AuditEvent
@@ -27,7 +29,7 @@ public sealed class AuditEvent
 
     public string DataJson { get; private set; }
 
-    public static AuditEvent Create(
+    public static Result<AuditEvent> Create(
         string entityType,
         Guid entityId,
         string action,
@@ -36,46 +38,24 @@ public sealed class AuditEvent
         string correlationId,
         string dataJson)
     {
-        if (string.IsNullOrWhiteSpace(entityType))
-        {
-            throw new DomainException("EntityType is required.");
-        }
+        var guard = new DomainGuard();
+        guard.Required(entityType, ErrorCodes.AuditEntityTypeRequired, out var normalizedEntityType);
+        guard.RequiredGuid(entityId, ErrorCodes.AuditEntityIdRequired);
+        guard.Required(action, ErrorCodes.AuditActionRequired, out var normalizedAction);
+        guard.Required(actorId, ErrorCodes.AuditActorIdRequired, out var normalizedActorId);
+        guard.Required(correlationId, ErrorCodes.AuditCorrelationIdRequired, out var normalizedCorrelationId);
+        guard.Required(dataJson, ErrorCodes.AuditDataJsonRequired, out var normalizedDataJson);
 
-        if (entityId == Guid.Empty)
-        {
-            throw new DomainException("EntityId is required.");
-        }
-
-        if (string.IsNullOrWhiteSpace(action))
-        {
-            throw new DomainException("Action is required.");
-        }
-
-        if (string.IsNullOrWhiteSpace(actorId))
-        {
-            throw new DomainException("ActorId is required.");
-        }
-
-        if (string.IsNullOrWhiteSpace(correlationId))
-        {
-            throw new DomainException("CorrelationId is required.");
-        }
-
-        if (string.IsNullOrWhiteSpace(dataJson))
-        {
-            throw new DomainException("DataJson is required.");
-        }
-
-        return new AuditEvent
+        return guard.ToResult(() => new AuditEvent
         {
             Id = Guid.NewGuid(),
-            EntityType = entityType.Trim(),
+            EntityType = normalizedEntityType,
             EntityId = entityId,
-            Action = action.Trim(),
-            ActorId = actorId,
+            Action = normalizedAction,
+            ActorId = normalizedActorId,
             OccurredAtUtc = occurredAtUtc,
-            CorrelationId = correlationId,
-            DataJson = dataJson
-        };
+            CorrelationId = normalizedCorrelationId,
+            DataJson = normalizedDataJson
+        });
     }
 }

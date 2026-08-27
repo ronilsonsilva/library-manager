@@ -5,9 +5,12 @@ using LibraryManager.Api.Middleware;
 using LibraryManager.Api.Security;
 using LibraryManager.Application.Books;
 using LibraryManager.Application.Common;
+using LibraryManager.Domain;
 using LibraryManager.Infrastructure.Persistence;
 using LibraryManager.IntegrationTests;
+using LibraryManager.IntegrationTests.Errors;
 using LibraryManager.IntegrationTests.Infrastructure;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -204,6 +207,9 @@ public sealed class BookCatalogTests : IAsyncLifetime
         var response = await _librarian.GetAsync($"/books/{Guid.NewGuid()}");
 
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        var problem = await response.Content.ReadFromJsonAsync<ProblemDetails>(JsonOptions);
+        Assert.NotNull(problem);
+        Assert.Equal(ErrorCodes.BookNotFound, ProblemDetailsCode.Read(problem));
     }
 
     [Fact]

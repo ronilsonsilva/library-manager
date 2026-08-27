@@ -1,3 +1,5 @@
+using LibraryManager.Domain.Validation;
+
 namespace LibraryManager.Domain;
 
 public sealed class User
@@ -19,36 +21,21 @@ public sealed class User
 
     public DateTime CreatedAtUtc { get; private set; }
 
-    public static User Create(string name, string email, DateTime utcNow)
+    public static Result<User> Create(string name, string email, DateTime utcNow)
     {
-        if (string.IsNullOrWhiteSpace(name))
-        {
-            throw new DomainException("Name is required.");
-        }
+        var guard = new DomainGuard();
+        guard.Required(name, ErrorCodes.UserNameRequired, out var trimmedName);
+        guard.MaxLength(trimmedName, NameMaxLength, ErrorCodes.UserNameTooLong);
+        guard.Required(email, ErrorCodes.UserEmailRequired, out var trimmedEmail);
+        var normalizedEmail = trimmedEmail.ToLowerInvariant();
+        guard.MaxLength(normalizedEmail, EmailMaxLength, ErrorCodes.UserEmailTooLong);
 
-        if (string.IsNullOrWhiteSpace(email))
-        {
-            throw new DomainException("Email is required.");
-        }
-
-        var trimmedName = name.Trim();
-        if (trimmedName.Length > NameMaxLength)
-        {
-            throw new DomainException($"Name must be at most {NameMaxLength} characters.");
-        }
-
-        var normalizedEmail = email.Trim().ToLowerInvariant();
-        if (normalizedEmail.Length > EmailMaxLength)
-        {
-            throw new DomainException($"Email must be at most {EmailMaxLength} characters.");
-        }
-
-        return new User
+        return guard.ToResult(() => new User
         {
             Id = Guid.NewGuid(),
             Name = trimmedName,
             Email = normalizedEmail,
             CreatedAtUtc = utcNow
-        };
+        });
     }
 }

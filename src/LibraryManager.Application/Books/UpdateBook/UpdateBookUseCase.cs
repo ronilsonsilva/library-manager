@@ -17,7 +17,7 @@ public sealed class UpdateBookUseCase(
     ILogger<UpdateBookUseCase> logger,
     ILibraryManagerMetrics metrics)
 {
-    public async Task<BookDto> ExecuteAsync(
+    public async Task<Result<BookDto>> ExecuteAsync(
         Guid id,
         string title,
         string author,
@@ -29,12 +29,15 @@ public sealed class UpdateBookUseCase(
         var outcome = await unitOfWork.ExecuteInTransactionAsync(
             async ct =>
             {
-                var book = await books.GetByIdAsync(id, ct)
-                    ?? throw new EntityNotFoundException(AuditMetadata.BookEntity);
+                var book = await books.GetByIdAsync(id, ct);
+                if (book is null)
+                {
+                    return Result.Failure<UpdateBookOutcome>(Error.NotFound(ErrorCodes.BookNotFound));
+                }
 
                 if (totalCopies < 1)
                 {
-                    throw new DomainException("TotalCopies must be at least 1.");
+                    return Result.Failure<UpdateBookOutcome>(Error.Validation(ErrorCodes.BookTotalCopiesInvalid));
                 }
 
                 var availabilityChanged = totalCopies != book.TotalCopies;
@@ -43,13 +46,17 @@ public sealed class UpdateBookUseCase(
                     var updated = await books.TryUpdateTotalCopiesAsync(id, totalCopies, ct);
                     if (!updated)
                     {
-                        throw new BusinessRuleException(
-                            "TotalCopies cannot be below the number of copies currently on loan.");
+                        return Result.Failure<UpdateBookOutcome>(
+                            Error.BusinessRule(ErrorCodes.BookTotalCopiesBelowBorrowed));
                     }
                 }
 
                 var utcNow = clock.UtcNow;
-                book.UpdateCatalog(title, author, utcNow);
+                var catalog = book.UpdateCatalog(title, author, utcNow);
+                if (catalog.IsFailure)
+                {
+                    return catalog.AsFailure<UpdateBookOutcome>();
+                }
 
                 var audit = AuditEvent.Create(
                     AuditMetadata.BookEntity,
@@ -65,7 +72,12 @@ public sealed class UpdateBookUseCase(
                         book.Author,
                         book.TotalCopies
                     }));
-                await audits.AddAsync(audit, ct);
+                if (audit.IsFailure)
+                {
+                    return audit.AsFailure<UpdateBookOutcome>();
+                }
+
+                await audits.AddAsync(audit.Value, ct);
 
                 if (availabilityChanged)
                 {
@@ -76,22 +88,32 @@ public sealed class UpdateBookUseCase(
                         ct);
                 }
 
-                await unitOfWork.SaveChangesAsync(ct);
-                return new UpdateBookOutcome(BookDto.From(book), availabilityChanged);
+                var saved = await unitOfWork.SaveChangesAsync(ct);
+                if (saved.IsFailure)
+                {
+                    return saved.AsFailure<UpdateBookOutcome>();
+                }
+
+                return Result.Success(new UpdateBookOutcome(BookDto.From(book), availabilityChanged));
             },
             cancellationToken);
 
-        if (outcome.AvailabilityChanged)
+        if (outcome.IsFailure)
+        {
+            return outcome.AsFailure<BookDto>();
+        }
+
+        if (outcome.Value.AvailabilityChanged)
         {
             await AvailabilityCacheInvalidation.TryRemoveAsync(
                 cache,
                 logger,
                 metrics,
-                outcome.Book.Id,
+                outcome.Value.Book.Id,
                 cancellationToken);
         }
 
-        return outcome.Book;
+        return Result.Success(outcome.Value.Book);
     }
 
     private sealed record UpdateBookOutcome(BookDto Book, bool AvailabilityChanged);

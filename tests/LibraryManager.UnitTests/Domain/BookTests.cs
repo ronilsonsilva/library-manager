@@ -9,7 +9,7 @@ public sealed class BookTests
     {
         var now = DateTime.UtcNow;
 
-        var book = Book.Create("Dune", "9780441172719", "Frank Herbert", 3, now);
+        var book = Book.Create("Dune", "9780441172719", "Frank Herbert", 3, now).Value;
 
         Assert.Equal("Dune", book.Title);
         Assert.Equal("9780441172719", book.Isbn);
@@ -25,7 +25,7 @@ public sealed class BookTests
     [Fact]
     public void Create_trims_text_fields()
     {
-        var book = Book.Create("  Dune  ", "  9780441172719  ", "  Frank Herbert  ", 1, DateTime.UtcNow);
+        var book = Book.Create("  Dune  ", "  9780441172719  ", "  Frank Herbert  ", 1, DateTime.UtcNow).Value;
 
         Assert.Equal("Dune", book.Title);
         Assert.Equal("9780441172719", book.Isbn);
@@ -37,28 +37,31 @@ public sealed class BookTests
     [InlineData("   ")]
     public void Create_rejects_missing_title(string title)
     {
-        var exception = Assert.Throws<DomainException>(() =>
-            Book.Create(title, "9780441172719", "Frank Herbert", 1, DateTime.UtcNow));
+        var result = Book.Create(title, "9780441172719", "Frank Herbert", 1, DateTime.UtcNow);
 
-        Assert.Contains("title", exception.Message, StringComparison.OrdinalIgnoreCase);
+        Assert.True(result.IsFailure);
+        Assert.Equal(ErrorCodes.BookTitleRequired, result.Error.Code);
+        Assert.Equal(ErrorType.Validation, result.Error.Type);
     }
 
     [Fact]
     public void Create_rejects_total_copies_below_one()
     {
-        var exception = Assert.Throws<DomainException>(() =>
-            Book.Create("Dune", "9780441172719", "Frank Herbert", 0, DateTime.UtcNow));
+        var result = Book.Create("Dune", "9780441172719", "Frank Herbert", 0, DateTime.UtcNow);
 
-        Assert.Contains("TotalCopies", exception.Message, StringComparison.Ordinal);
+        Assert.True(result.IsFailure);
+        Assert.Equal(ErrorCodes.BookTotalCopiesInvalid, result.Error.Code);
+        Assert.Equal(ErrorType.Validation, result.Error.Type);
     }
 
     [Fact]
     public void UpdateCatalog_does_not_change_isbn()
     {
-        var book = Book.Create("Dune", "9780441172719", "Frank Herbert", 1, DateTime.UtcNow);
+        var book = Book.Create("Dune", "9780441172719", "Frank Herbert", 1, DateTime.UtcNow).Value;
 
-        book.UpdateCatalog("Dune Messiah", "Frank Herbert", DateTime.UtcNow);
+        var updated = book.UpdateCatalog("Dune Messiah", "Frank Herbert", DateTime.UtcNow);
 
+        Assert.True(updated.IsSuccess);
         Assert.Equal("9780441172719", book.Isbn);
         Assert.Equal("Dune Messiah", book.Title);
     }
@@ -66,13 +69,15 @@ public sealed class BookTests
     [Fact]
     public void ApplyTotalCopies_rejects_value_below_borrowed_copies()
     {
-        var book = Book.Create("Dune", "9780441172719", "Frank Herbert", 2, DateTime.UtcNow);
-        book.ApplyTotalCopies(2, DateTime.UtcNow);
+        var book = Book.Create("Dune", "9780441172719", "Frank Herbert", 2, DateTime.UtcNow).Value;
+        Assert.True(book.ApplyTotalCopies(2, DateTime.UtcNow).IsSuccess);
         typeof(Book).GetProperty(nameof(Book.AvailableCopies))!.SetValue(book, 0);
 
-        var exception = Assert.Throws<DomainException>(() => book.ApplyTotalCopies(1, DateTime.UtcNow));
+        var result = book.ApplyTotalCopies(1, DateTime.UtcNow);
 
-        Assert.Contains("on loan", exception.Message, StringComparison.OrdinalIgnoreCase);
+        Assert.True(result.IsFailure);
+        Assert.Equal(ErrorCodes.BookTotalCopiesBelowBorrowed, result.Error.Code);
+        Assert.Equal(ErrorType.BusinessRule, result.Error.Type);
         Assert.Equal(2, book.TotalCopies);
         Assert.Equal(0, book.AvailableCopies);
     }
@@ -81,9 +86,9 @@ public sealed class BookTests
     public void ApplyTotalCopies_raises_available_copies_when_none_are_borrowed()
     {
         var now = DateTime.UtcNow;
-        var book = Book.Create("Dune", "9780441172719", "Frank Herbert", 1, now);
+        var book = Book.Create("Dune", "9780441172719", "Frank Herbert", 1, now).Value;
 
-        book.ApplyTotalCopies(4, now.AddMinutes(1));
+        Assert.True(book.ApplyTotalCopies(4, now.AddMinutes(1)).IsSuccess);
 
         Assert.Equal(4, book.TotalCopies);
         Assert.Equal(4, book.AvailableCopies);
@@ -92,7 +97,7 @@ public sealed class BookTests
     [Fact]
     public void Deactivate_sets_inactive_and_keeps_the_book_retrievable()
     {
-        var book = Book.Create("Dune", "9780441172719", "Frank Herbert", 1, DateTime.UtcNow);
+        var book = Book.Create("Dune", "9780441172719", "Frank Herbert", 1, DateTime.UtcNow).Value;
 
         book.Deactivate(DateTime.UtcNow);
 

@@ -1,5 +1,5 @@
 using LibraryManager.Application.Abstractions;
-using LibraryManager.Application.Common;
+using LibraryManager.Domain;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
 
@@ -7,23 +7,30 @@ namespace LibraryManager.Infrastructure.Persistence;
 
 public sealed class UnitOfWork(LibraryDbContext db) : IUnitOfWork
 {
-    public async Task<int> SaveChangesAsync(CancellationToken cancellationToken)
+    public async Task<Result> SaveChangesAsync(CancellationToken cancellationToken)
     {
         try
         {
-            return await db.SaveChangesAsync(cancellationToken);
+            await db.SaveChangesAsync(cancellationToken);
+            return Result.Success();
         }
         catch (DbUpdateException exception) when (exception.InnerException is PostgresException postgres
                                                   && postgres.SqlState == PostgresErrorCodes.UniqueViolation)
         {
-            throw postgres.ConstraintName switch
+            Result? mapped = postgres.ConstraintName switch
             {
-                "ux_books_isbn" => new BusinessRuleException("A book with this ISBN already exists."),
-                "ux_users_email" => new BusinessRuleException("A user with this email already exists."),
-                "ux_loans_user_book_active" => new BusinessRuleException(
-                    "An active loan already exists for this user and book."),
-                _ => exception
+                "ux_books_isbn" => Result.Failure(Error.BusinessRule(ErrorCodes.BookDuplicateIsbn)),
+                "ux_users_email" => Result.Failure(Error.BusinessRule(ErrorCodes.UserDuplicateEmail)),
+                "ux_loans_user_book_active" => Result.Failure(Error.BusinessRule(ErrorCodes.LoanDuplicateActive)),
+                _ => null
             };
+
+            if (mapped is null)
+            {
+                throw;
+            }
+
+            return mapped;
         }
     }
 
@@ -35,6 +42,12 @@ public sealed class UnitOfWork(LibraryDbContext db) : IUnitOfWork
         try
         {
             var result = await operation(cancellationToken);
+            if (result is IResult { IsFailure: true })
+            {
+                await transaction.RollbackAsync(cancellationToken);
+                return result;
+            }
+
             await transaction.CommitAsync(cancellationToken);
             return result;
         }

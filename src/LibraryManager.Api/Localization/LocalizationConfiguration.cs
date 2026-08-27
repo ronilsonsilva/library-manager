@@ -21,6 +21,7 @@ public static class LocalizationConfiguration
     public static IServiceCollection AddLibraryManagerLocalization(this IServiceCollection services)
     {
         services.AddLocalization();
+        services.AddSingleton<ErrorLocalizer>();
         services.Configure<RequestLocalizationOptions>(options =>
         {
             options.DefaultRequestCulture = new RequestCulture(DefaultCulture);

@@ -7,8 +7,10 @@ using LibraryManager.Application.Books;
 using LibraryManager.Application.Common;
 using LibraryManager.Application.Loans;
 using LibraryManager.Application.Users;
+using LibraryManager.Domain;
 using LibraryManager.Infrastructure.Persistence;
 using LibraryManager.IntegrationTests;
+using LibraryManager.IntegrationTests.Errors;
 using LibraryManager.IntegrationTests.Infrastructure;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -107,6 +109,7 @@ public sealed class CreateLoanTests : IAsyncLifetime
         var problem = await response.Content.ReadFromJsonAsync<ProblemDetails>(JsonOptions);
         Assert.NotNull(problem?.Detail);
         Assert.Contains("User", problem.Detail, StringComparison.Ordinal);
+        Assert.Equal(ErrorCodes.UserNotFound, ProblemDetailsCode.Read(problem));
         Assert.Equal(0, await CountLoansForBookAsync(book.Id));
     }
 

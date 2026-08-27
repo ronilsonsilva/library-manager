@@ -10,6 +10,7 @@ using LibraryManager.Application.Users;
 using LibraryManager.Domain;
 using LibraryManager.Infrastructure.Persistence;
 using LibraryManager.IntegrationTests;
+using LibraryManager.IntegrationTests.Errors;
 using LibraryManager.IntegrationTests.Infrastructure;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -195,6 +196,7 @@ public sealed class ReturnAndCancelTests : IAsyncLifetime
         var problem = await second.Content.ReadFromJsonAsync<ProblemDetails>(JsonOptions);
         Assert.NotNull(problem?.Detail);
         Assert.Contains("Active", problem.Detail, StringComparison.Ordinal);
+        Assert.Equal(ErrorCodes.LoanInvalidState, ProblemDetailsCode.Read(problem));
         Assert.Equal(1, (await GetBookAsync(book.Id)).AvailableCopies);
     }
 

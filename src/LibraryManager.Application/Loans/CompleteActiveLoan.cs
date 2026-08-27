@@ -7,7 +7,7 @@ namespace LibraryManager.Application.Loans;
 
 internal static class CompleteActiveLoan
 {
-    public static async Task<LoanDto> ExecuteAsync(
+    public static async Task<Result<LoanDto>> ExecuteAsync(
         ILoanRepository loans,
         IBookRepository books,
         IAuditRepository audits,
@@ -29,14 +29,17 @@ internal static class CompleteActiveLoan
         var completed = await unitOfWork.ExecuteInTransactionAsync(
             async ct =>
             {
-                var loan = await loans.GetByIdAsync(loanId, ct)
-                    ?? throw new EntityNotFoundException(AuditMetadata.LoanEntity);
+                var loan = await loans.GetByIdAsync(loanId, ct);
+                if (loan is null)
+                {
+                    return Result.Failure<LoanDto>(Error.NotFound(ErrorCodes.LoanNotFound));
+                }
 
                 var utcNow = clock.UtcNow;
                 var transitioned = await loans.TryCompleteActiveAsync(loanId, terminalStatus, utcNow, ct);
                 if (transitioned != 1)
                 {
-                    throw new BusinessRuleException("Only an Active loan can be returned or cancelled.");
+                    return Result.Failure<LoanDto>(Error.BusinessRule(ErrorCodes.LoanInvalidState));
                 }
 
                 var restored = await books.TryRestoreAvailabilityAsync(loan.BookId, ct);
@@ -58,7 +61,12 @@ internal static class CompleteActiveLoan
                         loan.UserId,
                         Status = terminalStatus.ToString()
                     }));
-                await audits.AddAsync(audit, ct);
+                if (audit.IsFailure)
+                {
+                    return audit.AsFailure<LoanDto>();
+                }
+
+                await audits.AddAsync(audit.Value, ct);
 
                 await outbox.WriteAsync(
                     AvailabilityOutbox.MessageType,
@@ -66,19 +74,32 @@ internal static class CompleteActiveLoan
                     utcNow,
                     ct);
 
-                await unitOfWork.SaveChangesAsync(ct);
+                var saved = await unitOfWork.SaveChangesAsync(ct);
+                if (saved.IsFailure)
+                {
+                    return saved.AsFailure<LoanDto>();
+                }
 
-                var reloaded = await loans.GetByIdAsync(loanId, ct)
-                    ?? throw new EntityNotFoundException(AuditMetadata.LoanEntity);
-                return LoanDto.From(reloaded);
+                var reloaded = await loans.GetByIdAsync(loanId, ct);
+                if (reloaded is null)
+                {
+                    return Result.Failure<LoanDto>(Error.NotFound(ErrorCodes.LoanNotFound));
+                }
+
+                return Result.Success(LoanDto.From(reloaded));
             },
             cancellationToken);
+
+        if (completed.IsFailure)
+        {
+            return completed;
+        }
 
         await AvailabilityCacheInvalidation.TryRemoveAsync(
             cache,
             logger,
             metrics,
-            completed.BookId,
+            completed.Value.BookId,
             cancellationToken);
         return completed;
     }

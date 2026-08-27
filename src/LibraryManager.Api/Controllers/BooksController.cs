@@ -2,6 +2,7 @@ using LibraryManager.Api.Contracts.Books.Requests;
 using LibraryManager.Api.Contracts.Books.Responses;
 using LibraryManager.Api.Contracts.Common;
 using LibraryManager.Api.Contracts.Loans.Responses;
+using LibraryManager.Api.ResultMapping;
 using LibraryManager.Api.Security;
 using LibraryManager.Application.Books.CreateBook;
 using LibraryManager.Application.Books.DeactivateBook;
@@ -29,18 +30,18 @@ public sealed class BooksController(
 {
     [HttpPost]
     [Authorize(Policy = LibrarianPolicy.Name)]
-    public async Task<ActionResult<BookResponse>> Create(
+    public async Task<IActionResult> Create(
         [FromBody] CreateBookRequest request,
         CancellationToken cancellationToken)
     {
-        var book = await createBook.ExecuteAsync(
+        var result = await createBook.ExecuteAsync(
             request.Title,
             request.Isbn,
             request.Author,
             request.TotalCopies,
             cancellationToken);
 
-        return CreatedAtAction(nameof(GetById), new { id = book.Id }, BookResponse.From(book));
+        return result.ToCreatedAtAction(this, nameof(GetById), book => new { id = book.Id }, BookResponse.From);
     }
 
     [HttpGet]
@@ -52,23 +53,23 @@ public sealed class BooksController(
         CancellationToken cancellationToken = default)
     {
         var result = await listBooks.ExecuteAsync(page, pageSize, isActive, cancellationToken);
-        return Ok(PagedResponse<BookResponse>.From(result, BookResponse.From));
+        return result.ToActionResult(this, BookResponse.From);
     }
 
     [HttpGet("{id:guid}")]
     [Authorize]
-    public async Task<ActionResult<BookResponse>> GetById(Guid id, CancellationToken cancellationToken)
+    public async Task<IActionResult> GetById(Guid id, CancellationToken cancellationToken)
     {
-        var book = await getBook.ExecuteAsync(id, cancellationToken);
-        return Ok(BookResponse.From(book));
+        var result = await getBook.ExecuteAsync(id, cancellationToken);
+        return result.ToActionResult(this, BookResponse.From);
     }
 
     [HttpGet("{id:guid}/availability")]
     [Authorize]
-    public async Task<ActionResult<BookAvailabilityResponse>> GetAvailability(Guid id, CancellationToken cancellationToken)
+    public async Task<IActionResult> GetAvailability(Guid id, CancellationToken cancellationToken)
     {
-        var availability = await getBookAvailability.ExecuteAsync(id, cancellationToken);
-        return Ok(BookAvailabilityResponse.From(availability));
+        var result = await getBookAvailability.ExecuteAsync(id, cancellationToken);
+        return result.ToActionResult(this, BookAvailabilityResponse.From);
     }
 
     [HttpGet("{id:guid}/loans")]
@@ -81,31 +82,31 @@ public sealed class BooksController(
         CancellationToken cancellationToken = default)
     {
         var result = await getBookLoanHistory.ExecuteAsync(id, page, pageSize, cancellationToken);
-        return Ok(PagedResponse<LoanResponse>.From(result, LoanResponse.From));
+        return result.ToActionResult(this, LoanResponse.From);
     }
 
     [HttpPut("{id:guid}")]
     [Authorize(Policy = LibrarianPolicy.Name)]
-    public async Task<ActionResult<BookResponse>> Update(
+    public async Task<IActionResult> Update(
         Guid id,
         [FromBody] UpdateBookRequest request,
         CancellationToken cancellationToken)
     {
-        var book = await updateBook.ExecuteAsync(
+        var result = await updateBook.ExecuteAsync(
             id,
             request.Title,
             request.Author,
             request.TotalCopies,
             cancellationToken);
 
-        return Ok(BookResponse.From(book));
+        return result.ToActionResult(this, BookResponse.From);
     }
 
     [HttpDelete("{id:guid}")]
     [Authorize(Policy = LibrarianPolicy.Name)]
     public async Task<IActionResult> Deactivate(Guid id, CancellationToken cancellationToken)
     {
-        await deactivateBook.ExecuteAsync(id, cancellationToken);
-        return NoContent();
+        var result = await deactivateBook.ExecuteAsync(id, cancellationToken);
+        return result.ToNoContentResult(this);
     }
 }

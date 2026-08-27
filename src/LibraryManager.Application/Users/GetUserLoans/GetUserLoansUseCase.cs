@@ -1,12 +1,13 @@
 using LibraryManager.Application.Abstractions;
 using LibraryManager.Application.Common;
 using LibraryManager.Application.Loans;
+using LibraryManager.Domain;
 
 namespace LibraryManager.Application.Users.GetUserLoans;
 
 public sealed class GetUserLoansUseCase(IUserRepository users, ILoanRepository loans)
 {
-    public async Task<PagedResult<LoanDto>> ExecuteAsync(
+    public async Task<Result<PagedResult<LoanDto>>> ExecuteAsync(
         Guid userId,
         int page,
         int pageSize,
@@ -17,7 +18,7 @@ public sealed class GetUserLoansUseCase(IUserRepository users, ILoanRepository l
         var user = await users.GetByIdAsync(userId, cancellationToken);
         if (user is null)
         {
-            throw new EntityNotFoundException(AuditMetadata.UserEntity);
+            return Result.Failure<PagedResult<LoanDto>>(Error.NotFound(ErrorCodes.UserNotFound));
         }
 
         var (normalizedPage, normalizedPageSize) = Pagination.Normalize(page, pageSize);
@@ -27,10 +28,10 @@ public sealed class GetUserLoansUseCase(IUserRepository users, ILoanRepository l
             normalizedPageSize,
             cancellationToken);
 
-        return new PagedResult<LoanDto>(
+        return Result.Success(new PagedResult<LoanDto>(
             items.Select(LoanDto.From).ToArray(),
             normalizedPage,
             normalizedPageSize,
-            totalCount);
+            totalCount));
     }
 }

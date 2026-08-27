@@ -1,5 +1,6 @@
 using LibraryManager.Application.Abstractions;
 using LibraryManager.Application.Common;
+using LibraryManager.Domain;
 using Microsoft.Extensions.Logging;
 
 namespace LibraryManager.Application.Books.GetBookAvailability;
@@ -9,7 +10,7 @@ public sealed class GetBookAvailabilityUseCase(
     IAvailabilityCache cache,
     ILogger<GetBookAvailabilityUseCase> logger)
 {
-    public async Task<BookAvailabilityDto> ExecuteAsync(Guid bookId, CancellationToken cancellationToken)
+    public async Task<Result<BookAvailabilityDto>> ExecuteAsync(Guid bookId, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
@@ -18,7 +19,7 @@ public sealed class GetBookAvailabilityUseCase(
             var cached = await cache.GetAsync(bookId, cancellationToken);
             if (cached is not null)
             {
-                return BookAvailabilityDto.From(cached);
+                return Result.Success(BookAvailabilityDto.From(cached));
             }
         }
         catch (Exception exception) when (exception is not OperationCanceledException)
@@ -26,8 +27,11 @@ public sealed class GetBookAvailabilityUseCase(
             logger.LogWarning(exception, "Failed to read availability cache for book {BookId}", bookId);
         }
 
-        var book = await books.GetByIdAsync(bookId, cancellationToken)
-            ?? throw new EntityNotFoundException(AuditMetadata.BookEntity);
+        var book = await books.GetByIdAsync(bookId, cancellationToken);
+        if (book is null)
+        {
+            return Result.Failure<BookAvailabilityDto>(Error.NotFound(ErrorCodes.BookNotFound));
+        }
 
         try
         {
@@ -40,6 +44,6 @@ public sealed class GetBookAvailabilityUseCase(
             logger.LogWarning(exception, "Failed to write availability cache for book {BookId}", bookId);
         }
 
-        return BookAvailabilityDto.From(book);
+        return Result.Success(BookAvailabilityDto.From(book));
     }
 }

@@ -32,15 +32,17 @@ public sealed class CreateLoanIdempotencyRollbackTests
         books.ThrowOnReserve = false;
         var created = await useCase.ExecuteAsync(bookId, userId, key, CancellationToken.None);
 
-        Assert.Equal(bookId, created.BookId);
-        Assert.Equal(userId, created.UserId);
+        Assert.True(created.IsSuccess);
+        Assert.Equal(bookId, created.Value.BookId);
+        Assert.Equal(userId, created.Value.UserId);
         Assert.Single(loans.Items);
         Assert.Equal(1, cache.RemoveCount);
         Assert.Single(store.Committed);
 
         var replayed = await useCase.ExecuteAsync(bookId, userId, key, CancellationToken.None);
 
-        Assert.Equal(created.Id, replayed.Id);
+        Assert.True(replayed.IsSuccess);
+        Assert.Equal(created.Value.Id, replayed.Value.Id);
         Assert.Single(loans.Items);
         Assert.Equal(1, cache.RemoveCount);
     }
@@ -56,12 +58,14 @@ public sealed class CreateLoanIdempotencyRollbackTests
         var key = "conflict-key";
 
         var created = await useCase.ExecuteAsync(books.Book.Id, books.UserId, key, CancellationToken.None);
+        Assert.True(created.IsSuccess);
 
-        var exception = await Assert.ThrowsAsync<IdempotencyConflictException>(() =>
-            useCase.ExecuteAsync(books.Book.Id, Guid.NewGuid(), key, CancellationToken.None));
+        var conflict = await useCase.ExecuteAsync(books.Book.Id, Guid.NewGuid(), key, CancellationToken.None);
 
-        Assert.Contains("Idempotency-Key", exception.Message, StringComparison.Ordinal);
-        Assert.Equal(created.Id, loans.Items.Single().Id);
+        Assert.True(conflict.IsFailure);
+        Assert.Equal(ErrorCodes.IdempotencyPayloadMismatch, conflict.Error.Code);
+        Assert.Equal(ErrorType.Conflict, conflict.Error.Type);
+        Assert.Equal(created.Value.Id, loans.Items.Single().Id);
         Assert.Equal(1, cache.RemoveCount);
     }
 
@@ -90,7 +94,8 @@ public sealed class CreateLoanIdempotencyRollbackTests
 
     private sealed class FakeUnitOfWork(InMemoryIdempotencyStore store) : IUnitOfWork
     {
-        public Task<int> SaveChangesAsync(CancellationToken cancellationToken) => Task.FromResult(1);
+        public Task<Result> SaveChangesAsync(CancellationToken cancellationToken) =>
+            Task.FromResult(Result.Success());
 
         public async Task<T> ExecuteInTransactionAsync<T>(
             Func<CancellationToken, Task<T>> operation,
@@ -100,6 +105,12 @@ public sealed class CreateLoanIdempotencyRollbackTests
             try
             {
                 var result = await operation(cancellationToken);
+                if (result is IResult { IsFailure: true })
+                {
+                    store.Rollback();
+                    return result;
+                }
+
                 store.Commit();
                 return result;
             }
@@ -192,7 +203,7 @@ public sealed class CreateLoanIdempotencyRollbackTests
 
     private sealed class FakeBookRepository : IBookRepository
     {
-        public Book Book { get; } = Book.Create("Dune", "9780441172719", "Frank Herbert", 2, DateTime.UtcNow);
+        public Book Book { get; } = Book.Create("Dune", "9780441172719", "Frank Herbert", 2, DateTime.UtcNow).Value;
         public FakeUserRepository Users { get; } = new();
         public Guid UserId => Users.User.Id;
         public bool ThrowOnReserve { get; set; }
@@ -234,7 +245,7 @@ public sealed class CreateLoanIdempotencyRollbackTests
 
     private sealed class FakeUserRepository : IUserRepository
     {
-        public User User { get; } = User.Create("Ada Lovelace", "ada@example.com", DateTime.UtcNow);
+        public User User { get; } = User.Create("Ada Lovelace", "ada@example.com", DateTime.UtcNow).Value;
 
         public Task<User?> GetByIdAsync(Guid id, CancellationToken cancellationToken) =>
             Task.FromResult(id == User.Id ? User : null);
