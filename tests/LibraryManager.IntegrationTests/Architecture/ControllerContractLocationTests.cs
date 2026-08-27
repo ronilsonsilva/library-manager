@@ -28,6 +28,7 @@ public sealed class ControllerContractLocationTests
     {
         foreach (var (path, source) in ControllerSources())
         {
+            Assert.DoesNotContain("ActionResult<PagedResult", source, StringComparison.Ordinal);
             foreach (var typeName in ApplicationHttpContractTypeNames)
             {
                 Assert.False(

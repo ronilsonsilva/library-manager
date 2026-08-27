@@ -76,7 +76,7 @@ dotnet test tests/LibraryManager.UnitTests
 dotnet test tests/LibraryManager.IntegrationTests
 ```
 
-Integration tests use Testcontainers PostgreSQL and Redis. They register a test authentication scheme only when `Testing:UseTestAuth` is true. That setting is false in Compose. Coverage expectations are listed in `specs/001-library-manager/quickstart.md`.
+Integration tests use Testcontainers PostgreSQL and Redis. They register a test authentication scheme only when `Testing:UseTestAuth` is true. That setting is false in Compose. Coverage includes last-copy concurrency, sequential and concurrent idempotency, return/cancel, Outbox, JWT, health, HTTP contract locations, Idempotency-Key binding, Result mapping, localization, cache resilience, SQL parameterization, and Keycloak realm configuration (`directAccessGrantsEnabled=false`). See `specs/001-library-manager/quickstart.md` and `specs/002-production-hardening/quickstart.md`.
 
 ## Architecture
 
@@ -89,6 +89,98 @@ Four production projects, dependencies pointing inward:
 
 The solution does not use CQRS, MediatR, Command/Query/Handler types, or a Generic Repository. Controllers call one UseCase.
 
+## HTTP contracts
+
+Request and response types live in `LibraryManager.Api` under `Contracts/<Feature>/Requests` and `Contracts/<Feature>/Responses`. Controllers do not declare transport records.
+
+List, loan history, and audit list actions return API `PagedResponse<T>` (`items`, `page`, `pageSize`, `totalCount`). Application `PagedResult<T>` and Application DTOs are mapped at the HTTP boundary and are not serialized as the public contract.
+
+## Transport validation
+
+Simple HTTP constraints are enforced before a UseCase runs:
+
+- Request bodies use DataAnnotations (`Required`, `StringLength`, `Range`) on contract types.
+- `[ApiController]` returns HTTP 400 `ValidationProblemDetails` automatically. Controllers do not inspect `ModelState`.
+- Invalid `Idempotency-Key` never reaches `CreateLoanUseCase`.
+
+HTTP 400 is transport validation. HTTP 422 is a business rule. HTTP 409 is Idempotency-Key payload mismatch. Those statuses stay distinct.
+
+## Idempotency-Key model binding
+
+`POST /loans` binds a strongly typed `IdempotencyKey` with `[FromIdempotencyKey]`. The binder reads the `Idempotency-Key` header, trims it, and rejects missing, empty, whitespace-only, or values longer than 128 characters as ModelState errors (HTTP 400). A 128-character key is valid. The action parameter is not a nullable `string` and does not use `[Required]` or `[StringLength]`.
+
+Durable ownership remains a unique PostgreSQL row on endpoint + key. The request hash is SHA-256 of canonical JSON `{ "bookId", "userId" }`. Same hash replays HTTP 201 with the stored body. A different hash returns HTTP 409. Unexpected failure rolls back key ownership so a retry can proceed.
+
+## Result Pattern and domain validation
+
+Expected Domain and Application outcomes use `Result` / `Result<T>` with `Error` and `ErrorType`. Stable English codes (`Book.NotFound`, `Book.Unavailable`, `Idempotency.PayloadMismatch`, and others in `ErrorCodes`) travel with the error. Localization happens only at the API boundary.
+
+`DomainGuard` replaces repetitive domain if/throw checks (required strings, non-empty Guid, positive integers, UTC timestamps). Domain has no ASP.NET Core, localization, or Infrastructure dependencies. Expected field validation on factories such as `AuditEvent.Create` returns `Result`; it is not thrown as `DomainException`.
+
+`ResultHttpMapper` maps:
+
+| ErrorType | HTTP |
+| --- | --- |
+| Validation | 400 |
+| NotFound | 404 |
+| BusinessRule | 422 |
+| Conflict | 409 |
+
+Problem Details include localized title/detail, language-neutral `code`, and `correlationId`.
+
+## Localization
+
+Supported cultures: `en-US` (default) and `pt-BR`. `Accept-Language` selects the culture. Omitted or unsupported values fall back to `en-US`. Responses set `Content-Language`.
+
+User-facing binder, DataAnnotations, Result, and unexpected-error text are localized. Structured log templates, metric names, trace names, error codes, and operational logs stay English.
+
+Example:
+
+```bash
+curl -sS -H "Authorization: Bearer $TOKEN" -H "Accept-Language: pt-BR" \
+  -H "Content-Type: application/json" \
+  -d '{"title":"","isbn":"9780441172719","author":"Frank Herbert","totalCopies":1}' \
+  http://localhost:8080/books
+```
+
+Expected: HTTP 400, `Content-Language: pt-BR`, Portuguese validation text, English-stable `correlationId`.
+
+## Unexpected exceptions
+
+`ApiExceptionHandler` (`IExceptionHandler`) is the HTTP boundary for unexpected failures only. Expected Result failures are not thrown to reach that handler. Unexpected responses are generic localized HTTP 500 Problem Details with `correlationId`. Stack traces, SQL, Redis, and other internals are not returned. `OperationCanceledException` is not handled as a 500.
+
+## Caching and Redis resilience
+
+Redis key `library-manager:books:{bookId}:availability`, TTL 60 seconds, cache-aside for `GET /books/{id}/availability` only. Loan approval never reads Redis.
+
+Infrastructure wraps Redis with `ResilientAvailabilityCacheDecorator`:
+
+- GET failure is treated as a cache miss; PostgreSQL still serves availability.
+- SET failure is non-fatal after committed catalog work.
+- REMOVE failure is non-fatal, logs an English warning, and increments `library_manager_cache_invalidation_failures`.
+- `OperationCanceledException` is never swallowed.
+
+Application UseCases do not catch Redis exceptions. After commit the API awaits `RemoveAsync`; the transactional Outbox retries missed invalidations. `Task.Run` fire-and-forget is not used.
+
+Successful `DeactivateBook` writes the mutation, `AuditEvent`, and `BookAvailabilityChanged` Outbox row in one PostgreSQL transaction, then invalidates the availability cache after commit. A previously cached active value is not left as the observable GET result.
+
+## Outbox
+
+Availability-changing transactions write an Outbox row in the same DbContext transaction. `OutboxProcessor` claims with `FOR UPDATE SKIP LOCKED`, stores `LockedBy` / `LockedUntilUtc`, commits, then talks to Redis. Expired leases can be recovered. Delivery is at-least-once; `DEL` is idempotent.
+
+## NuGet audit
+
+`Directory.Build.props` sets `NuGetAudit=true` and `NuGetAuditMode=all`. With `TreatWarningsAsErrors`, NU1903 (high) and NU1904 (critical) fail the build for direct and transitive packages. Auditing is not globally disabled and those codes are not suppressed with `NoWarn`. Remediation is upgrade, replacement, or documented risk treatment. The API does not reference `OpenTelemetry.Instrumentation.StackExchangeRedis`; cache spans use the `LibraryManager` `ActivitySource` (`availability_cache.get`, `.set`, `.remove`).
+
+```bash
+dotnet package list --vulnerable --include-transitive
+dotnet build
+```
+
+## SQL parameterization
+
+Runtime SQL values use database parameters. Production code does not concatenate user or runtime input into `ExecuteSqlRaw` / `FromSqlRaw`. Existing `ExecuteSqlInterpolatedAsync` calls in `BookRepository`, `LoanRepository`, and `IdempotencyStore` are parameterized and are not rewritten for style.
+
 ## Concurrency
 
 The last remaining copy is reserved with a single conditional update:
@@ -97,23 +189,11 @@ The last remaining copy is reserved with a single conditional update:
 
 Exactly one concurrent request wins; the other receives HTTP 422. Availability never goes negative. Process memory, `SemaphoreSlim`, and Redis locks are not used for this invariant.
 
-## Idempotency
-
-`POST /loans` requires `Idempotency-Key`. Ownership is a unique PostgreSQL row on endpoint + key. The request hash is SHA-256 of canonical JSON `{ "bookId", "userId" }`. Same hash replays HTTP 201 with the stored body. A different hash returns HTTP 409. Unexpected failure rolls back key ownership so a retry can proceed.
-
 ## Audit
 
 Successful mutations persist `AuditEvent` in the same PostgreSQL transaction. Actor is JWT `sub`. Correlation id comes from `X-Correlation-ID` (or a generated value) and is returned on the response. Rejected mutations do not write a success audit for that operation.
 
 `GET /audit-events` is librarian-only.
-
-## Caching
-
-Redis key `library-manager:books:{bookId}:availability`, TTL 60 seconds, cache-aside for the availability GET only. Loan approval never reads Redis. After commit the API awaits `RemoveAsync`; Outbox retries missed invalidations. `Task.Run` fire-and-forget is not used.
-
-## Outbox
-
-Availability-changing transactions write an Outbox row in the same DbContext transaction. `OutboxProcessor` claims with `FOR UPDATE SKIP LOCKED`, stores `LockedBy` / `LockedUntilUtc`, commits, then talks to Redis. Expired leases can be recovered. Delivery is at-least-once; `DEL` is idempotent.
 
 ## Observability
 

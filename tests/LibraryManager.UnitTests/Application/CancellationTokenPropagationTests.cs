@@ -1,6 +1,8 @@
 using LibraryManager.Application.Abstractions;
+using LibraryManager.Application.Books;
 using LibraryManager.Application.Books.GetBook;
 using LibraryManager.Application.Books.ListBooks;
+using LibraryManager.Application.Common;
 using LibraryManager.Domain;
 
 namespace LibraryManager.UnitTests.Application;
@@ -14,8 +16,10 @@ public sealed class CancellationTokenPropagationTests
         cancelled.Cancel();
         var useCase = new GetBookUseCase(new MustNotBeCalledBookRepository());
 
-        await Assert.ThrowsAnyAsync<OperationCanceledException>(() =>
-            useCase.ExecuteAsync(Guid.NewGuid(), cancelled.Token));
+        Func<Task<Result<BookDto>>> execute = () =>
+            useCase.ExecuteAsync(Guid.NewGuid(), cancelled.Token);
+
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(execute);
     }
 
     [Fact]
@@ -25,8 +29,10 @@ public sealed class CancellationTokenPropagationTests
         cancelled.Cancel();
         var useCase = new ListBooksUseCase(new MustNotBeCalledBookRepository());
 
-        await Assert.ThrowsAnyAsync<OperationCanceledException>(() =>
-            useCase.ExecuteAsync(1, 20, isActive: null, cancelled.Token));
+        Func<Task<Result<PagedResult<BookDto>>>> execute = () =>
+            useCase.ExecuteAsync(1, 20, isActive: null, cancelled.Token);
+
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(execute);
     }
 
     private sealed class MustNotBeCalledBookRepository : IBookRepository

@@ -254,9 +254,9 @@ description: "Task list for production-hardening implementation"
 
 ### Tests for User Story 9
 
-- [ ] T076 [US9] Re-run and fix leftovers in `tests/LibraryManager.IntegrationTests/Loans/CreateLoanTests.cs`, `IdempotencyTests.cs`, `ReturnAndCancelTests.cs`, `tests/LibraryManager.IntegrationTests/Outbox/OutboxProcessorTests.cs`, `tests/LibraryManager.IntegrationTests/Security/AuthorizationTests.cs`, `tests/LibraryManager.IntegrationTests/Health/HealthEndpointTests.cs`, and `tests/LibraryManager.IntegrationTests/Telemetry/ObservabilityTests.cs` (keep `library_manager_cache_invalidation_failures`)
-- [ ] T077 [US9] Update `tests/LibraryManager.UnitTests/Application/CancellationTokenPropagationTests.cs` if UseCase signatures now return `Result`/`Result<T>`
-- [ ] T078 [US9] Confirm two-host last-copy coverage still runs via `tests/LibraryManager.IntegrationTests/Loans/CreateLoanTests.cs` and `tests/LibraryManager.IntegrationTests/Infrastructure/CustomWebApplicationFactory.cs`
+- [X] T076 [US9] Re-run and fix leftovers in `tests/LibraryManager.IntegrationTests/Loans/CreateLoanTests.cs`, `IdempotencyTests.cs`, `ReturnAndCancelTests.cs`, `tests/LibraryManager.IntegrationTests/Outbox/OutboxProcessorTests.cs`, `tests/LibraryManager.IntegrationTests/Security/AuthorizationTests.cs`, `tests/LibraryManager.IntegrationTests/Health/HealthEndpointTests.cs`, and `tests/LibraryManager.IntegrationTests/Telemetry/ObservabilityTests.cs` (keep `library_manager_cache_invalidation_failures`)
+- [X] T077 [US9] Update `tests/LibraryManager.UnitTests/Application/CancellationTokenPropagationTests.cs` if UseCase signatures now return `Result`/`Result<T>`
+- [X] T078 [US9] Confirm two-host last-copy coverage still runs via `tests/LibraryManager.IntegrationTests/Loans/CreateLoanTests.cs` and `tests/LibraryManager.IntegrationTests/Infrastructure/CustomWebApplicationFactory.cs`
 
 **Checkpoint**: Hardening has not regressed 001 guarantees
 
@@ -266,10 +266,10 @@ description: "Task list for production-hardening implementation"
 
 **Purpose**: Docs, dead code, and quickstart walkthrough
 
-- [ ] T079 [P] Document localization, Result mapping, Idempotency-Key binding, cache decorator, NuGet audit, SQL parameterization, and PKCE-only Keycloak in `README.md`
+- [X] T079 [P] Document localization, Result mapping, Idempotency-Key binding, cache decorator, NuGet audit, SQL parameterization, and PKCE-only Keycloak in `README.md`
 - [X] T080 [P] Delete unused `src/LibraryManager.Application/Common/EntityNotFoundException.cs`, `BusinessRuleException.cs`, and `IdempotencyConflictException.cs` if no remaining references
-- [ ] T081 Walk `specs/002-production-hardening/quickstart.md` (Compose health, PKCE-only auth, binder 400s, Accept-Language, Redis-down availability, `dotnet test`)
-- [ ] T082 [P] Confirm `ControllerContractLocationTests` still forbids Application `PagedResult<T>` / DTO return types on list/history/audit actions in `tests/LibraryManager.IntegrationTests/Architecture/ControllerContractLocationTests.cs` after Result mapping (T051)
+- [X] T081 Walk `specs/002-production-hardening/quickstart.md` (Compose health, PKCE-only auth, binder 400s, Accept-Language, Redis-down availability, `dotnet test`)
+- [X] T082 [P] Confirm `ControllerContractLocationTests` still forbids Application `PagedResult<T>` / DTO return types on list/history/audit actions in `tests/LibraryManager.IntegrationTests/Architecture/ControllerContractLocationTests.cs` after Result mapping (T051)
 
 ---
 
