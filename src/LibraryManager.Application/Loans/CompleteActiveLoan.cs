@@ -1,7 +1,6 @@
 using LibraryManager.Application.Abstractions;
 using LibraryManager.Application.Common;
 using LibraryManager.Domain;
-using Microsoft.Extensions.Logging;
 
 namespace LibraryManager.Application.Loans;
 
@@ -17,8 +16,6 @@ internal static class CompleteActiveLoan
         IClock clock,
         ICurrentUserContext currentUser,
         ICorrelationContext correlation,
-        ILogger logger,
-        ILibraryManagerMetrics metrics,
         Guid loanId,
         LoanStatus terminalStatus,
         string auditAction,
@@ -95,12 +92,7 @@ internal static class CompleteActiveLoan
             return completed;
         }
 
-        await AvailabilityCacheInvalidation.TryRemoveAsync(
-            cache,
-            logger,
-            metrics,
-            completed.Value.BookId,
-            cancellationToken);
+        await cache.RemoveAsync(completed.Value.BookId, cancellationToken);
         return completed;
     }
 }

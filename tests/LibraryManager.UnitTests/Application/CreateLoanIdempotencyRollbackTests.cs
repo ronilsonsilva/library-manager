@@ -1,9 +1,7 @@
 using LibraryManager.Application.Abstractions;
-using LibraryManager.Application.Common;
-using LibraryManager.Application.Loans;
 using LibraryManager.Application.Loans.CreateLoan;
+using LibraryManager.Application.Loans;
 using LibraryManager.Domain;
-using Microsoft.Extensions.Logging;
 
 namespace LibraryManager.UnitTests.Application;
 
@@ -88,8 +86,7 @@ public sealed class CreateLoanIdempotencyRollbackTests
             new FixedClock(),
             new FakeCurrentUser(),
             new FakeCorrelation(),
-            new NoopMetrics(),
-            new NoopLogger());
+            new NoopMetrics());
     }
 
     private sealed class FakeUnitOfWork(InMemoryIdempotencyStore store) : IUnitOfWork
@@ -377,22 +374,6 @@ public sealed class CreateLoanIdempotencyRollbackTests
         }
 
         public void SetOutboxPending(long pending)
-        {
-        }
-    }
-
-    private sealed class NoopLogger : ILogger<CreateLoanUseCase>
-    {
-        public IDisposable? BeginScope<TState>(TState state) where TState : notnull => null;
-
-        public bool IsEnabled(LogLevel logLevel) => false;
-
-        public void Log<TState>(
-            LogLevel logLevel,
-            EventId eventId,
-            TState state,
-            Exception? exception,
-            Func<TState, Exception?, string> formatter)
         {
         }
     }

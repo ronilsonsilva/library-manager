@@ -8,6 +8,8 @@ namespace LibraryManager.Infrastructure.Caching;
 
 public sealed class RedisAvailabilityCache : IAvailabilityCache
 {
+    public const string ServiceKey = "redis";
+
     public const int TimeToLiveSeconds = 60;
 
     private static readonly JsonSerializerOptions JsonOptions = new()

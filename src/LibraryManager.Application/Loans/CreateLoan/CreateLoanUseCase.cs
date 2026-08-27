@@ -2,7 +2,6 @@ using LibraryManager.Application.Abstractions;
 using LibraryManager.Application.Common;
 using LibraryManager.Application.Telemetry;
 using LibraryManager.Domain;
-using Microsoft.Extensions.Logging;
 using System.Diagnostics;
 
 namespace LibraryManager.Application.Loans.CreateLoan;
@@ -19,8 +18,7 @@ public sealed class CreateLoanUseCase(
     IClock clock,
     ICurrentUserContext currentUser,
     ICorrelationContext correlation,
-    ILibraryManagerMetrics metrics,
-    ILogger<CreateLoanUseCase> logger)
+    ILibraryManagerMetrics metrics)
 {
     public const string IdempotencyEndpoint = "POST /loans";
     public const int CreatedStatus = 201;
@@ -143,12 +141,7 @@ public sealed class CreateLoanUseCase(
         if (outcome.Value.Created)
         {
             metrics.RecordLoanCreated();
-            await AvailabilityCacheInvalidation.TryRemoveAsync(
-                cache,
-                logger,
-                metrics,
-                bookId,
-                cancellationToken);
+            await cache.RemoveAsync(bookId, cancellationToken);
         }
         else
         {

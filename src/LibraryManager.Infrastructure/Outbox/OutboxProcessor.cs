@@ -1,6 +1,7 @@
 using System.Text.Json;
 using LibraryManager.Application.Abstractions;
 using LibraryManager.Application.Common;
+using LibraryManager.Infrastructure.Caching;
 using LibraryManager.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -37,7 +38,7 @@ public sealed class OutboxProcessor : BackgroundService
 
     public OutboxProcessor(
         IServiceScopeFactory scopes,
-        IAvailabilityCache cache,
+        [FromKeyedServices(RedisAvailabilityCache.ServiceKey)] IAvailabilityCache cache,
         IClock clock,
         IConfiguration configuration,
         ILogger<OutboxProcessor> logger,

@@ -8,6 +8,7 @@ using LibraryManager.Infrastructure.Time;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace LibraryManager.Infrastructure;
 
@@ -29,7 +30,15 @@ public static class DependencyInjection
         services.AddScoped<IOutboxWriter, OutboxWriter>();
         services.AddScoped<OutboxClaimer>();
         services.AddScoped<IIdempotencyStore, IdempotencyStore>();
-        services.AddSingleton<IAvailabilityCache, RedisAvailabilityCache>();
+        services.AddSingleton<RedisAvailabilityCache>();
+        services.AddKeyedSingleton<IAvailabilityCache>(
+            RedisAvailabilityCache.ServiceKey,
+            (sp, _) => sp.GetRequiredService<RedisAvailabilityCache>());
+        services.AddSingleton<IAvailabilityCache>(sp =>
+            new ResilientAvailabilityCacheDecorator(
+                sp.GetRequiredService<RedisAvailabilityCache>(),
+                sp.GetRequiredService<ILogger<ResilientAvailabilityCacheDecorator>>(),
+                sp.GetRequiredService<ILibraryManagerMetrics>()));
         services.AddSingleton<IClock, SystemClock>();
         services.AddSingleton<OutboxProcessor>();
         if (!string.Equals(configuration["Outbox:ProcessorEnabled"], "false", StringComparison.OrdinalIgnoreCase))

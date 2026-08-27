@@ -1,7 +1,6 @@
 using LibraryManager.Application.Abstractions;
 using LibraryManager.Application.Common;
 using LibraryManager.Domain;
-using Microsoft.Extensions.Logging;
 
 namespace LibraryManager.Application.Books.UpdateBook;
 
@@ -13,9 +12,7 @@ public sealed class UpdateBookUseCase(
     IAvailabilityCache cache,
     IClock clock,
     ICurrentUserContext currentUser,
-    ICorrelationContext correlation,
-    ILogger<UpdateBookUseCase> logger,
-    ILibraryManagerMetrics metrics)
+    ICorrelationContext correlation)
 {
     public async Task<Result<BookDto>> ExecuteAsync(
         Guid id,
@@ -105,12 +102,7 @@ public sealed class UpdateBookUseCase(
 
         if (outcome.Value.AvailabilityChanged)
         {
-            await AvailabilityCacheInvalidation.TryRemoveAsync(
-                cache,
-                logger,
-                metrics,
-                outcome.Value.Book.Id,
-                cancellationToken);
+            await cache.RemoveAsync(outcome.Value.Book.Id, cancellationToken);
         }
 
         return Result.Success(outcome.Value.Book);

@@ -1,7 +1,8 @@
 using LibraryManager.Application.Abstractions;
 using LibraryManager.Infrastructure.Caching;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using StackExchange.Redis;
 
 namespace LibraryManager.IntegrationTests.Infrastructure;
 
@@ -11,15 +12,33 @@ internal sealed class CallbackAvailabilityCache(IAvailabilityCache inner) : IAva
 
     public bool FailAllRemoves { get; set; }
 
+    public bool FailAllGets { get; set; }
+
+    public bool FailAllSets { get; set; }
+
     public Guid? FailRemoveForBookId { get; set; }
 
     public Func<Guid, CancellationToken, Task>? OnRemove { get; set; }
 
-    public Task<BookAvailabilityCacheItem?> GetAsync(Guid bookId, CancellationToken cancellationToken) =>
-        inner.GetAsync(bookId, cancellationToken);
+    public async Task<BookAvailabilityCacheItem?> GetAsync(Guid bookId, CancellationToken cancellationToken)
+    {
+        if (FailAllGets)
+        {
+            throw SimulatedRedisFailure();
+        }
 
-    public Task SetAsync(BookAvailabilityCacheItem item, CancellationToken cancellationToken) =>
-        inner.SetAsync(item, cancellationToken);
+        return await inner.GetAsync(bookId, cancellationToken);
+    }
+
+    public async Task SetAsync(BookAvailabilityCacheItem item, CancellationToken cancellationToken)
+    {
+        if (FailAllSets)
+        {
+            throw SimulatedRedisFailure();
+        }
+
+        await inner.SetAsync(item, cancellationToken);
+    }
 
     public async Task RemoveAsync(Guid bookId, CancellationToken cancellationToken)
     {
@@ -38,7 +57,7 @@ internal sealed class CallbackAvailabilityCache(IAvailabilityCache inner) : IAva
                 RemainingRemoveFailures--;
             }
 
-            throw new InvalidOperationException("Simulated Redis failure.");
+            throw SimulatedRedisFailure();
         }
 
         await inner.RemoveAsync(bookId, cancellationToken);
@@ -48,6 +67,8 @@ internal sealed class CallbackAvailabilityCache(IAvailabilityCache inner) : IAva
     {
         RemainingRemoveFailures = 0;
         FailAllRemoves = false;
+        FailAllGets = false;
+        FailAllSets = false;
         FailRemoveForBookId = null;
         OnRemove = null;
     }
@@ -61,11 +82,19 @@ internal sealed class CallbackAvailabilityCache(IAvailabilityCache inner) : IAva
 
         services.AddSingleton(sp =>
         {
-            var cache = new CallbackAvailabilityCache(
-                new RedisAvailabilityCache(sp.GetRequiredService<IConfiguration>()));
+            var cache = new CallbackAvailabilityCache(sp.GetRequiredService<RedisAvailabilityCache>());
             configure?.Invoke(cache);
             return cache;
         });
-        services.AddSingleton<IAvailabilityCache>(sp => sp.GetRequiredService<CallbackAvailabilityCache>());
+        services.AddKeyedSingleton<IAvailabilityCache>(
+            RedisAvailabilityCache.ServiceKey,
+            (sp, _) => sp.GetRequiredService<CallbackAvailabilityCache>());
+        services.AddSingleton<IAvailabilityCache>(sp =>
+            new ResilientAvailabilityCacheDecorator(
+                sp.GetRequiredService<CallbackAvailabilityCache>(),
+                sp.GetRequiredService<ILogger<ResilientAvailabilityCacheDecorator>>(),
+                sp.GetRequiredService<ILibraryManagerMetrics>()));
     }
+
+    private static RedisException SimulatedRedisFailure() => new("Simulated Redis failure.");
 }

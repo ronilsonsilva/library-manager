@@ -1,7 +1,6 @@
 using LibraryManager.Application.Abstractions;
 using LibraryManager.Application.Common;
 using LibraryManager.Domain;
-using Microsoft.Extensions.Logging;
 
 namespace LibraryManager.Application.Loans.CancelLoan;
 
@@ -14,9 +13,7 @@ public sealed class CancelLoanUseCase(
     IAvailabilityCache cache,
     IClock clock,
     ICurrentUserContext currentUser,
-    ICorrelationContext correlation,
-    ILogger<CancelLoanUseCase> logger,
-    ILibraryManagerMetrics metrics)
+    ICorrelationContext correlation)
 {
     public Task<Result<LoanDto>> ExecuteAsync(Guid loanId, CancellationToken cancellationToken) =>
         CompleteActiveLoan.ExecuteAsync(
@@ -29,8 +26,6 @@ public sealed class CancelLoanUseCase(
             clock,
             currentUser,
             correlation,
-            logger,
-            metrics,
             loanId,
             LoanStatus.Cancelled,
             AuditMetadata.LoanCancelled,

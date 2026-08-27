@@ -154,16 +154,16 @@ description: "Task list for production-hardening implementation"
 
 ### Tests for User Story 5
 
-- [ ] T056 [P] [US5] Add failing unit tests for GET-miss / SET-non-fatal / REMOVE-non-fatal / cancellation / REMOVE failure calling `ILibraryManagerMetrics.RecordCacheInvalidationFailure` in `tests/LibraryManager.UnitTests/Infrastructure/ResilientAvailabilityCacheDecoratorTests.cs`
-- [ ] T057 [P] [US5] Add failing integration tests for Redis-unavailable GET fallback and non-fatal SET in `tests/LibraryManager.IntegrationTests/Caching/CacheResilienceTests.cs`
+- [X] T056 [P] [US5] Add failing unit tests for GET-miss / SET-non-fatal / REMOVE-non-fatal / cancellation / REMOVE failure calling `ILibraryManagerMetrics.RecordCacheInvalidationFailure` in `tests/LibraryManager.UnitTests/Infrastructure/ResilientAvailabilityCacheDecoratorTests.cs`
+- [X] T057 [P] [US5] Add failing integration tests for Redis-unavailable GET fallback and non-fatal SET in `tests/LibraryManager.IntegrationTests/Caching/CacheResilienceTests.cs`
 
 ### Implementation for User Story 5
 
-- [ ] T058 [US5] Implement `ResilientAvailabilityCacheDecorator` catching Redis infrastructure exceptions (not `Exception`) in `src/LibraryManager.Infrastructure/Caching/ResilientAvailabilityCacheDecorator.cs`: GET miss on Redis failure; SET/REMOVE non-fatal; REMOVE logs a structured English warning and calls `ILibraryManagerMetrics.RecordCacheInvalidationFailure`; rethrow `OperationCanceledException`
-- [ ] T059 [US5] Register `RedisAvailabilityCache` + decorator as `IAvailabilityCache` in `src/LibraryManager.Infrastructure/DependencyInjection.cs` (fix OTel/connection hooks to target the concrete cache)
-- [ ] T060 [US5] Remove Redis `try/catch` from `src/LibraryManager.Application/Books/GetBookAvailability/GetBookAvailabilityUseCase.cs`
-- [ ] T061 [US5] Delete `src/LibraryManager.Application/Common/AvailabilityCacheInvalidation.cs` and call `IAvailabilityCache.RemoveAsync` from `CreateLoanUseCase.cs`, `CompleteActiveLoan.cs`, `UpdateBookUseCase.cs`, and `DeactivateBookUseCase.cs`
-- [ ] T062 [US5] Adjust `tests/LibraryManager.IntegrationTests/Caching/AvailabilityCacheTests.cs` and `tests/LibraryManager.IntegrationTests/Infrastructure/CallbackAvailabilityCache.cs` for decorator registration
+- [X] T058 [US5] Implement `ResilientAvailabilityCacheDecorator` catching Redis infrastructure exceptions (not `Exception`) in `src/LibraryManager.Infrastructure/Caching/ResilientAvailabilityCacheDecorator.cs`: GET miss on Redis failure; SET/REMOVE non-fatal; REMOVE logs a structured English warning and calls `ILibraryManagerMetrics.RecordCacheInvalidationFailure`; rethrow `OperationCanceledException`
+- [X] T059 [US5] Register `RedisAvailabilityCache` + decorator as `IAvailabilityCache` in `src/LibraryManager.Infrastructure/DependencyInjection.cs` (fix OTel/connection hooks to target the concrete cache)
+- [X] T060 [US5] Remove Redis `try/catch` from `src/LibraryManager.Application/Books/GetBookAvailability/GetBookAvailabilityUseCase.cs`
+- [X] T061 [US5] Delete `src/LibraryManager.Application/Common/AvailabilityCacheInvalidation.cs` and call `IAvailabilityCache.RemoveAsync` from `CreateLoanUseCase.cs`, `CompleteActiveLoan.cs`, `UpdateBookUseCase.cs`, and `DeactivateBookUseCase.cs`
+- [X] T062 [US5] Adjust `tests/LibraryManager.IntegrationTests/Caching/AvailabilityCacheTests.cs` and `tests/LibraryManager.IntegrationTests/Infrastructure/CallbackAvailabilityCache.cs` for decorator registration
 
 **Checkpoint**: Cache misses and Redis outages no longer live in Application
 
