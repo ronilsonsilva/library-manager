@@ -29,7 +29,7 @@ description: "Task list for production-hardening implementation"
 
 - [X] T001 Create `src/LibraryManager.Api/Contracts/Common/`, `Contracts/Books/Requests/`, `Contracts/Books/Responses/`, `Contracts/Users/Requests/`, `Contracts/Users/Responses/`, `Contracts/Loans/Requests/`, `Contracts/Loans/Responses/`, `Contracts/Audit/Responses/`, `ModelBinding/IdempotencyKey/`, `Localization/`, and `Resources/` directories
 - [X] T002 [P] Set `InvariantGlobalization` to `false` and include `Resources/*.resx` in `src/LibraryManager.Api/LibraryManager.Api.csproj`
-- [ ] T003 [P] Create test folders `tests/LibraryManager.UnitTests/Api/`, `tests/LibraryManager.UnitTests/Infrastructure/`, `tests/LibraryManager.IntegrationTests/Architecture/`, `tests/LibraryManager.IntegrationTests/Localization/`, and `tests/LibraryManager.IntegrationTests/Errors/`
+- [X] T003 [P] Create test folders `tests/LibraryManager.UnitTests/Api/`, `tests/LibraryManager.UnitTests/Infrastructure/`, `tests/LibraryManager.IntegrationTests/Architecture/`, `tests/LibraryManager.IntegrationTests/Localization/`, and `tests/LibraryManager.IntegrationTests/Errors/`
 
 ---
 
@@ -216,13 +216,13 @@ description: "Task list for production-hardening implementation"
 
 ### Tests for User Story 4
 
-- [ ] T070 [P] [US4] Add failing Accept-Language tests (default en-US, en-US, pt-BR, Idempotency-Key, body, Result, unexpected, `correlationId`) in `tests/LibraryManager.IntegrationTests/Localization/AcceptLanguageTests.cs`
+- [X] T070 [P] [US4] Add failing Accept-Language tests (default en-US, en-US, pt-BR, Idempotency-Key, body, Result, unexpected, `correlationId`) in `tests/LibraryManager.IntegrationTests/Localization/AcceptLanguageTests.cs`
 
 ### Implementation for User Story 4
 
-- [ ] T071 [US4] Attach DataAnnotations resource keys on request contracts in `src/LibraryManager.Api/Contracts/Books/Requests/`, `Users/Requests/CreateUserRequest.cs`, and `Loans/Requests/CreateLoanRequest.cs`
-- [ ] T072 [US4] Complete `Error_*` entries for every `ErrorCodes` value in `src/LibraryManager.Api/Resources/SharedResource.resx`, `SharedResource.en-US.resx`, and `SharedResource.pt-BR.resx`
-- [ ] T073 [US4] Ensure `ErrorLocalizer` and ValidationProblemDetails use `IStringLocalizer<SharedResource>` in `src/LibraryManager.Api/Localization/ErrorLocalizer.cs` and `src/LibraryManager.Api/Results/ResultHttpMapper.cs`
+- [X] T071 [US4] Attach DataAnnotations resource keys on request contracts in `src/LibraryManager.Api/Contracts/Books/Requests/`, `Users/Requests/CreateUserRequest.cs`, and `Loans/Requests/CreateLoanRequest.cs`
+- [X] T072 [US4] Complete `Error_*` entries for every `ErrorCodes` value in `src/LibraryManager.Api/Resources/SharedResource.resx`, `SharedResource.en-US.resx`, and `SharedResource.pt-BR.resx`
+- [X] T073 [US4] Ensure `ErrorLocalizer` and ValidationProblemDetails use `IStringLocalizer<SharedResource>` in `src/LibraryManager.Api/Localization/ErrorLocalizer.cs` and `src/LibraryManager.Api/Results/ResultHttpMapper.cs`
 
 **Checkpoint**: User-facing HTTP text is localized; diagnostics are not
 

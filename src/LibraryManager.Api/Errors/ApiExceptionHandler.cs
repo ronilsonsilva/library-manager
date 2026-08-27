@@ -1,3 +1,4 @@
+using System.Globalization;
 using LibraryManager.Api.Middleware;
 using LibraryManager.Api.Resources;
 using LibraryManager.Application.Abstractions;
@@ -37,6 +38,7 @@ public sealed class ApiExceptionHandler(
 
         httpContext.Response.StatusCode = StatusCodes.Status500InternalServerError;
         httpContext.Response.ContentType = "application/problem+json";
+        httpContext.Response.Headers.ContentLanguage = CultureInfo.CurrentUICulture.Name;
         await httpContext.Response.WriteAsJsonAsync(problem, cancellationToken: cancellationToken);
 
         return true;

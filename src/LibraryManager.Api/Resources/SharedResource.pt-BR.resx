@@ -27,6 +27,36 @@
   <data name="Validation_TotalCopies_Range" xml:space="preserve">
     <value>TotalCopies deve ser no mínimo 1.</value>
   </data>
+  <data name="Validation_Title_MaxLength" xml:space="preserve">
+    <value>O título deve ter no máximo {1} caracteres.</value>
+  </data>
+  <data name="Validation_Isbn_MaxLength" xml:space="preserve">
+    <value>O ISBN deve ter no máximo {1} caracteres.</value>
+  </data>
+  <data name="Validation_Author_Required" xml:space="preserve">
+    <value>O autor é obrigatório.</value>
+  </data>
+  <data name="Validation_Author_MaxLength" xml:space="preserve">
+    <value>O autor deve ter no máximo {1} caracteres.</value>
+  </data>
+  <data name="Validation_Name_Required" xml:space="preserve">
+    <value>O nome é obrigatório.</value>
+  </data>
+  <data name="Validation_Name_MaxLength" xml:space="preserve">
+    <value>O nome deve ter no máximo {1} caracteres.</value>
+  </data>
+  <data name="Validation_Email_Required" xml:space="preserve">
+    <value>O e-mail é obrigatório.</value>
+  </data>
+  <data name="Validation_Email_MaxLength" xml:space="preserve">
+    <value>O e-mail deve ter no máximo {1} caracteres.</value>
+  </data>
+  <data name="Validation_BookId_Required" xml:space="preserve">
+    <value>BookId é obrigatório.</value>
+  </data>
+  <data name="Validation_UserId_Required" xml:space="preserve">
+    <value>UserId é obrigatório.</value>
+  </data>
   <data name="Error_Audit_EntityTypeRequired" xml:space="preserve">
     <value>EntityType é obrigatório.</value>
   </data>

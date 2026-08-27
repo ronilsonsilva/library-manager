@@ -103,8 +103,8 @@ public static class ResultHttpMapper
     private static ActionResult ToProblem(ControllerBase controller, Error error)
     {
         var services = controller.HttpContext.RequestServices;
-        var titles = services.GetService<IStringLocalizer<SharedResource>>();
-        var errorLocalizer = services.GetService<ErrorLocalizer>();
+        var titles = services.GetRequiredService<IStringLocalizer<SharedResource>>();
+        var errorLocalizer = services.GetRequiredService<ErrorLocalizer>();
         var correlationId = services.GetService<ICorrelationContext>()?.CorrelationId
             ?? controller.HttpContext.Response.Headers[CorrelationIdMiddleware.HeaderName].FirstOrDefault();
 
@@ -120,8 +120,8 @@ public static class ResultHttpMapper
         var problem = new ProblemDetails
         {
             Status = status,
-            Title = titles is null ? titleKey : titles[titleKey].Value,
-            Detail = errorLocalizer?.Localize(error) ?? error.Code,
+            Title = titles[titleKey].Value,
+            Detail = errorLocalizer.Localize(error),
             Instance = controller.HttpContext.Request.Path
         };
         problem.Extensions["code"] = error.Code;
