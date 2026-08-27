@@ -236,11 +236,11 @@ description: "Task list for production-hardening implementation"
 
 ### Tests for User Story 7
 
-- [ ] T074 [P] [US7] Add source assertion that `src/LibraryManager.Infrastructure/` does not concatenate runtime values into `ExecuteSqlRaw`/`FromSqlRaw` in `tests/LibraryManager.IntegrationTests/Architecture/SqlParameterizationTests.cs`
+- [X] T074 [P] [US7] Add source assertion that `src/LibraryManager.Infrastructure/` does not concatenate runtime values into `ExecuteSqlRaw`/`FromSqlRaw` in `tests/LibraryManager.IntegrationTests/Architecture/SqlParameterizationTests.cs`
 
 ### Implementation for User Story 7
 
-- [ ] T075 [US7] Leave parameterized `ExecuteSqlInterpolatedAsync` in `src/LibraryManager.Infrastructure/Persistence/Repositories/BookRepository.cs`, `LoanRepository.cs`, and `src/LibraryManager.Infrastructure/Idempotency/IdempotencyStore.cs`; replace only genuinely unsafe Raw SQL if the audit finds any
+- [X] T075 [US7] Leave parameterized `ExecuteSqlInterpolatedAsync` in `src/LibraryManager.Infrastructure/Persistence/Repositories/BookRepository.cs`, `LoanRepository.cs`, and `src/LibraryManager.Infrastructure/Idempotency/IdempotencyStore.cs`; replace only genuinely unsafe Raw SQL if the audit finds any
 
 **Checkpoint**: SQL safety is documented by test and unchanged safe Interpolated calls
 
