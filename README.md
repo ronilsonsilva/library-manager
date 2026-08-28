@@ -30,6 +30,8 @@
 - [Why the System Remains Correct with 2–11 Replicas](#why-the-system-remains-correct-with-2-11-replicas)
 - [Security Considerations](#security-considerations)
 - [Dependency Security](#dependency-security)
+- [Known Limitations](#known-limitations)
+- [Production Evolution](#production-evolution)
 
 ## Overview
 
@@ -1022,3 +1024,35 @@ dotnet package list --outdated
 ```
 
 Prefer upgrading the direct parent package when a finding appears. Do not add blanket `NoWarn` for NU1903/NU1904. The API project does not reference prerelease `OpenTelemetry.Instrumentation.StackExchangeRedis`; cache spans use the project `ActivitySource` instead.
+
+## Known Limitations
+
+These are current boundaries of the implementation, not missing challenge requirements.
+
+- **Idempotency retention** — `idempotency_entries` rows persist indefinitely. There is no TTL, scheduled cleanup, or archival job.
+- **Outbox retention** — Processed `outbox_messages` remain in PostgreSQL. There is no automatic purge or archive policy.
+- **Kubernetes** — Manifests in `deploy/kubernetes/` describe an API baseline only. They do not deploy PostgreSQL, Redis, Keycloak, or an Ingress. This repository does not apply them to a live cluster.
+- **Integration authentication** — `dotnet test` uses in-process test authentication (`Testing__UseTestAuth`) for HTTP 401/403 coverage. It does not boot the Compose Keycloak container.
+- **Readiness vs lending** — `GET /health/ready` checks PostgreSQL and Redis (not Keycloak). Redis readiness can fail while lending remains correct because inventory and idempotency live in PostgreSQL.
+- **Observability backend** — JSON console logs and in-process OpenTelemetry meters are enabled by default. OTLP export is optional (`OpenTelemetry__OtlpEndpoint` empty in `appsettings.json`). No external collector or dashboard is provisioned.
+- **Cache staleness** — `GET /books/{id}/availability` may serve a cached value until TTL (60s) or invalidation. Loans never consult Redis; stale cache cannot authorize a lend.
+- **In-progress idempotency** — If a key is reserved but no stored **201** body exists yet, a replay throws and surfaces as an unexpected **500**, not a wait or **409** API.
+- **JWT challenge text** — **401** / **403** Problem Details titles and details are hardcoded English and are not selected by `Accept-Language`.
+- **Swagger environment** — Swagger UI is registered only when `ASPNETCORE_ENVIRONMENT` is Development. Compose sets Development; the Kubernetes sample sets Production and does not serve `/swagger` unless that changes.
+
+## Production Evolution
+
+Sensible next steps for a real production deployment. None of these are required for the challenge’s correctness guarantees.
+
+| Area | Typical next step |
+| --- | --- |
+| Data stores | Managed PostgreSQL and Redis with backups, patching, and high availability instead of self-hosted instances |
+| Identity | Managed OIDC / enterprise IdP with rotation, MFA, and separate admin vs API clients |
+| Secrets | External secret store or sealed secrets instead of `REPLACE_WITH_*` placeholders in git |
+| Migrations | Dedicated migration job or pipeline step (Kubernetes already sets `Database__ApplyMigrations=false` on pods) |
+| Observability | OpenTelemetry Collector in the cluster exporting to a production traces/metrics/logs backend |
+| Idempotency / Outbox | Retention, compaction, or archival policies for `idempotency_entries` and processed `outbox_messages` |
+| Scale | Horizontal Pod Autoscaler after load testing; Ingress or API gateway for TLS termination and routing |
+| Resilience | Rate limiting, circuit breakers at the edge, and runbooks for Redis/PostgreSQL outages |
+
+Horizontal scaling of the API itself does not require redesign: stateless processes, PostgreSQL conditional updates, durable idempotency, transactional audit/Outbox, and idempotent cache invalidation already support multiple replicas.

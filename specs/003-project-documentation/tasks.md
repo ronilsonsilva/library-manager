@@ -151,7 +151,7 @@ description: "Task list for project-documentation implementation"
 
 ### Implementation for User Story 6
 
-- [ ] T034 [US6] Write AI-Assisted / Spec-Driven Development, Known Limitations, and Production Evolution in `README.md` from `specs/003-project-documentation/research.md` (real limitations only; short non-promotional AI note; evolution not implied defects)
+- [ ] T034 [US6] Write AI-Assisted / Spec-Driven Development, Known Limitations, and Production Evolution in `README.md` from `specs/003-project-documentation/research.md` (real limitations only; short non-promotional AI note; evolution not implied defects) — Known Limitations and Production Evolution done; AI disclosure pending
 - [ ] T035 [US6] Refresh the Table of Contents in `README.md` so every H2 in `specs/003-project-documentation/contracts/readme-outline.md` is clickable and no major section is duplicated
 - [X] T036 [US6] Accuracy pass on `README.md` vs `specs/003-project-documentation/contracts/endpoint-catalog.md`, `configuration-catalog.md`, and `test-matrix.md`; English only; no invented endpoints/settings/statuses/secrets; if controllers and OpenAPI disagree, report in the working notes and do not document a blended contract
 

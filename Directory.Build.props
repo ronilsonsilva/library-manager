@@ -6,6 +6,5 @@
     <WarningsNotAsErrors>NU1901;NU1902</WarningsNotAsErrors>
     <NuGetAudit>true</NuGetAudit>
     <NuGetAuditMode>all</NuGetAuditMode>
-    <InvariantGlobalization>true</InvariantGlobalization>
   </PropertyGroup>
 </Project>
